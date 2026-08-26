@@ -1,8 +1,6 @@
 # Nimbus 云盘(nimbus-cloud)
 
 企业级网盘系统,基于 **Spring Boot 3.5.5 + JDK 21 + React 18 + TypeScript** 的前后端分离架构。
-后端参考 [hmoob-mini-backend](https://github.com/7VVI/hmoob-mini-backend)(RuoYi-Vue-Plus 风格)的组件化设计自研实现;
-前端界面按产品原型(`docs/nimbus_cloud_prototype.html`)高度还原。
 
 > 架构设计文档: `docs/design.md` · 产品原型: `docs/nimbus_cloud_prototype.html`
 
