@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimbus 云盘 · 产品界面原型</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+:root{
+  --text1:#1C2024; --text2:#60646C; --text3:#8B909A;
+  --border:#E6E8EB; --border2:#D9DCE1;
+  --bg-app:#F7F8FA; --hover:#F4F5F6;
+  --accent:#3E63DD; --accent-h:#3455C4; --accent-lt:#EDF1FE; --accent-lt2:#DFE7FB;
+  --green:#299764; --green-lt:#E9F5EE;
+  --orange:#DE911D; --orange-lt:#FCF3E1;
+  --red:#D44C47; --red-lt:#FEEDEC;
+  --purple:#8E4EC6; --purple-lt:#F4EBF9;
+  --pink:#C2255C; --pink-lt:#FBEBF1;
+  --cyan:#0EA5A5; --cyan-lt:#E0F5F4;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'DM Sans','PingFang SC','Microsoft YaHei',sans-serif;
+  background:#EEEFF1;color:var(--text1);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+button{font-family:inherit;font-size:inherit;border:none;background:none;color:inherit;cursor:pointer}
+input{font-family:inherit;border:none;outline:none;background:none;color:inherit}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#CFD3D9;border-radius:6px;border:2.5px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:#B8BDC5;border:2.5px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-track{background:transparent}
+.row-hover{transition:background .12s ease}
+.row-hover:hover{background:var(--hover)}
+.fade-in{animation:fadeUp .32s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.pop-in{animation:popIn .22s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes popIn{from{opacity:0;transform:scale(.95) translateY(4px)}to{opacity:1;transform:none}}
+.slide-up{animation:slideUp .25s ease both}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.dots-bg{
+  background-color:#EDEEF0;
+  background-image:radial-gradient(#D8DBE0 1px, transparent 1px);
+  background-size:22px 22px;
+}
+kbd{
+  font-family:'DM Sans',monospace;font-size:11px;color:var(--text3);
+  border:1px solid var(--border2);border-bottom-width:2px;border-radius:4px;
+  padding:1px 5px;background:#fff;
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useMemo,useRef} = React;
+
+const PATHS = {
+  folder:<path d="M3 8.2A2.2 2.2 0 0 1 5.2 6h4.1l2 2.2h7.5A2.2 2.2 0 0 1 21 10.4v7.4a2.2 2.2 0 0 1-2.2 2.2H5.2A2.2 2.2 0 0 1 3 17.8V8.2Z"/>,
+  doc:<><path d="M13.5 3.5H7.2A2.2 2.2 0 0 0 5 5.7v12.6a2.2 2.2 0 0 0 2.2 2.2h9.6a2.2 2.2 0 0 0 2.2-2.2V9l-5.5-5.5Z"/><path d="M13.5 3.5V9H19"/></>,
+  sheet:<><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.5h16M9.5 9.5V20"/></>,
+  slide:<><rect x="3.5" y="4.5" width="17" height="12" rx="2"/><path d="M12 16.5v3.5M8.5 20h7"/></>,
+  img:<><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="8.6" cy="9.8" r="1.5"/><path d="m3.5 15.8 4.2-3.8 3.4 3 3.8-3.5 5.6 4.6"/></>,
+  video:<><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M10 9.3v5.4l4.8-2.7L10 9.3Z"/></>,
+  audio:<><path d="M9.5 17.5V7l9-1.8V15"/><circle cx="7" cy="17.5" r="2.5"/><circle cx="16" cy="15" r="2.5"/></>,
+  zip:<><rect x="5.5" y="3.5" width="13" height="17" rx="2"/><path d="M12 3.5v2.4M12 8v2.4M12 12.5v1.6"/><rect x="10.6" y="14.6" width="2.8" height="3.4" rx="1"/></>,
+  code:<path d="m8.5 8-4 4 4 4m7-8 4 4-4 4"/>,
+  clock:<><circle cx="12" cy="12" r="8.5"/><path d="M12 7.6V12l3.1 1.9"/></>,
+  star:<path d="M12 3.6l2.55 5.17 5.7.83-4.12 4.02.97 5.68L12 16.6l-5.1 2.7.97-5.68L3.75 9.6l5.7-.83L12 3.6Z"/>,
+  users:<><circle cx="9.2" cy="8.6" r="3.4"/><path d="M3.8 19.4c.7-3 2.9-4.6 5.4-4.6s4.7 1.6 5.4 4.6"/><circle cx="17" cy="9.6" r="2.5"/><path d="M16.6 15c2.1.3 3.4 1.5 3.8 3.6"/></>,
+  user:<><circle cx="12" cy="8.4" r="3.9"/><path d="M4.8 19.8c.9-3.4 3.8-5 7.2-5s6.3 1.6 7.2 5"/></>,
+  trash:<><path d="M4.5 6.8h15"/><path d="M9.8 6.5V5.1a1.6 1.6 0 0 1 1.6-1.6h1.2a1.6 1.6 0 0 1 1.6 1.6v1.4"/><path d="M6.6 6.8l.75 12.2a1.9 1.9 0 0 0 1.9 1.8h5.5a1.9 1.9 0 0 0 1.9-1.8l.75-12.2"/><path d="M10.1 10.5v6.2M13.9 10.5v6.2"/></>,
+  upload:<><path d="M12 15.5V4.8"/><path d="m7.2 9.5 4.8-4.7 4.8 4.7"/><path d="M4.5 15.5v2.7a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-2.7"/></>,
+  download:<><path d="M12 4.8v10.7"/><path d="m7.2 10.7 4.8 4.8 4.8-4.8"/><path d="M4.5 15.5v2.7a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-2.7"/></>,
+  transfer:<><path d="M4 8.2h13"/><path d="m14.5 5.2 3 3-3 3"/><path d="M20 15.8H7"/><path d="m9.5 18.8-3-3 3-3"/></>,
+  search:<><circle cx="11" cy="11" r="6.3"/><path d="m19.8 19.8-3.9-3.9"/></>,
+  grid:<><rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/></>,
+  list:<><path d="M8.6 6.2h11.9M8.6 12h11.9M8.6 17.8h11.9"/><circle cx="4.6" cy="6.2" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.6" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.6" cy="17.8" r="1.1" fill="currentColor" stroke="none"/></>,
+  more:<><circle cx="5.5" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.3" fill="currentColor" stroke="none"/></>,
+  check:<path d="m4.5 12.6 5 5L19.5 6.8"/>,
+  close:<path d="M6 6l12 12M18 6 6 18"/>,
+  chevronR:<path d="m9.2 5.6 6.4 6.4-6.4 6.4"/>,
+  chevronL:<path d="M14.8 5.6 8.4 12l6.4 6.4"/>,
+  chevronD:<path d="m6 9.2 6 6 6-6"/>,
+  plus:<path d="M12 5.2v13.6M5.2 12h13.6"/>,
+  minus:<path d="M5.2 12h13.6"/>,
+  link:<><path d="M9.8 14.2l4.4-4.4"/><path d="M9.7 12.4 7.3 14.8a3.6 3.6 0 0 0 5.1 5.1l2.4-2.4"/><path d="m14.3 11.6 2.4-2.4a3.6 3.6 0 0 0-5.1-5.1L9.2 6.5"/></>,
+  restore:<><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5"/></>,
+  pause:<path d="M9.2 6.2v11.6M14.8 6.2v11.6"/>,
+  play:<path d="M8.2 5.4v13.2L18.6 12 8.2 5.4Z"/>,
+  alert:<><circle cx="12" cy="12" r="8.5"/><path d="M12 8.2v4.6"/><circle cx="12" cy="15.9" r=".5" fill="currentColor" stroke="none"/></>,
+  info:<><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><circle cx="12" cy="8.1" r=".5" fill="currentColor" stroke="none"/></>,
+  cloud:<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>,
+  eye:<><path d="M2.8 12S6.2 5.8 12 5.8 21.2 12 21.2 12 17.8 18.2 12 18.2 2.8 12 2.8 12Z"/><circle cx="12" cy="12" r="2.9"/></>,
+  pencil:<><path d="M14.8 5.2 18.8 9.2 8 20H4v-4L14.8 5.2Z"/><path d="m13 7 4 4"/></>,
+  copy:<><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5.8 14.8h-.4a1.9 1.9 0 0 1-1.9-1.9V5.4a1.9 1.9 0 0 1 1.9-1.9h7.5a1.9 1.9 0 0 1 1.9 1.9v.4"/></>,
+  bell:<><path d="M6.2 9.7a5.8 5.8 0 0 1 11.6 0c0 3.9 1.4 5.3 1.4 5.3H4.8s1.4-1.4 1.4-5.3Z"/><path d="M10 18.4a2.1 2.1 0 0 0 4 0"/></>,
+  settings:<><path d="M4 7.2h6.8M17 7.2h3M4 16.8h3M13.2 16.8h6.8"/><circle cx="14" cy="7.2" r="2.2"/><circle cx="10" cy="16.8" r="2.2"/></>,
+  shield:<path d="M12 3.4 19 6v5.6c0 4.4-2.9 7.3-7 8.9-4.1-1.6-7-4.5-7-8.9V6l7-2.6Z"/>,
+  phoneDev:<><rect x="7.5" y="2.8" width="9" height="18.5" rx="2.2"/><path d="M11.5 18.2h1"/></>,
+  monitor:<><rect x="3" y="4.5" width="18" height="12.5" rx="2"/><path d="M9 20.5h6M12 17v3.5"/></>,
+  cloudDown:<><path d="M12 12.5v7"/><path d="m9.2 16.7 2.8 2.8 2.8-2.8"/><path d="M17 16.5A4.2 4.2 0 0 0 16.6 8.1 5.4 5.4 0 0 0 6.4 9.7 3.9 3.9 0 0 0 7 16.5"/></>,
+  camera:<><rect x="3.5" y="6.8" width="17" height="13" rx="2.2"/><path d="M8.2 6.8 9.6 4.2h4.8l1.4 2.6"/><circle cx="12" cy="13" r="3.4"/></>,
+  gem:<><path d="M12 3.5 19 9.2 12 20.5 5 9.2 12 3.5Z"/><path d="M5 9.2h14"/></>,
+  sort:<><path d="M8 5.5v13m0 0-3.2-3.2M8 18.5l3.2-3.2"/><path d="M16 18.5v-13m0 0-3.2 3.2M16 5.5l3.2 3.2"/></>,
+  filter:<path d="M4.5 6.5h15M7.5 12h9M10.5 17.5h3"/>,
+  folderPlus:<><path d="M3 8.2A2.2 2.2 0 0 1 5.2 6h4.1l2 2.2h7.5A2.2 2.2 0 0 1 21 10.4v7.4a2.2 2.2 0 0 1-2.2 2.2H5.2A2.2 2.2 0 0 1 3 17.8V8.2Z"/><path d="M12 11v5M9.5 13.5h5"/></>,
+  docPlus:<><path d="M13.5 3.5H7.2A2.2 2.2 0 0 0 5 5.7v12.6a2.2 2.2 0 0 0 2.2 2.2h9.6a2.2 2.2 0 0 0 2.2-2.2V9l-5.5-5.5Z"/><path d="M13.5 3.5V9H19"/><path d="M12 12v5M9.5 14.5h5"/></>,
+};
+function I({name,size=18,color='currentColor',sw=1.7,filled=false,style}){
+  const isFill = filled && (name==='star'||name==='play');
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={isFill?'currentColor':'none'}
+      stroke={isFill?'none':color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" style={style}>
+      {PATHS[name]}
+    </svg>
+  );
+}
+
+const AV_COLORS=['#3E63DD','#8E4EC6','#129764','#DE911D','#C2255C','#0EA5A5'];
+function Avatar({name,label,size=28,ring=false}){
+  const idx=(name?name.charCodeAt(0):65)%AV_COLORS.length;
+  return (
+    <div style={{
+      width:size,height:size,borderRadius:'50%',flexShrink:0,
+      background:`linear-gradient(135deg,${AV_COLORS[idx]},${AV_COLORS[idx]}B3)`,
+      color:'#fff',fontSize:size*0.42,fontWeight:600,
+      display:'flex',alignItems:'center',justifyContent:'center',
+      boxShadow:ring?'0 0 0 2px #fff':'none'
+    }}>{label||name[0]}</div>
+  );
+}
+function AvatarStack({names,labels,size=24}){
+  return (
+    <div style={{display:'flex'}}>
+      {names.map((n,i)=>(
+        <div key={i} style={{marginLeft:i?-8:0,zIndex:10-i}}>
+          <Avatar name={n} label={labels&&labels[i]} size={size} ring={true}/>
+        </div>
+      ))}
+    </div>
+  );
+}
+function Badge({color='gray',children,solid=false,style}){
+  const map={
+    gray:['#F1F2F4','#60646C'],blue:['var(--accent-lt)','var(--accent)'],
+    green:['var(--green-lt)','var(--green)'],orange:['var(--orange-lt)','#A96A0A'],
+    red:['var(--red-lt)','var(--red)'],purple:['var(--purple-lt)','var(--purple)'],
+    cyan:['var(--cyan-lt)','#0B7E7E'],
+  };
+  const pair=map[color]||map.gray;
+  return (
+    <span style={{
+      display:'inline-flex',alignItems:'center',gap:4,padding:'2px 8px',
+      borderRadius:999,fontSize:11.5,fontWeight:600,lineHeight:'18px',
+      background:solid?pair[1]:pair[0],color:solid?'#fff':pair[1],whiteSpace:'nowrap',...style
+    }}>{children}</span>
+  );
+}
+function Checkbox({checked,onChange,dim}){
+  return (
+    <div onClick={e=>{e.stopPropagation();onChange&&onChange();}} style={{
+      width:17,height:17,borderRadius:5,cursor:'pointer',flexShrink:0,
+      border:checked?'none':'1.5px solid var(--border2)',
+      background:checked?'var(--accent)':(dim?'transparent':'#fff'),
+      display:'flex',alignItems:'center',justifyContent:'center',
+      transition:'all .12s ease'
+    }}>
+      {checked && <I name="check" size={11} color="#fff" sw={2.6}/>}
+    </div>
+  );
+}
+function ProgressLine({pct,color='var(--accent)',h=6,track='#EBECEE'}){
+  return (
+    <div style={{width:'100%',height:h,borderRadius:h/2,background:track,overflow:'hidden'}}>
+      <div style={{width:pct+'%',height:'100%',borderRadius:h/2,background:color,transition:'width .3s ease'}}/>
+    </div>
+  );
+}
+function Ring({pct,size=110,sw=10,color='var(--accent)',track='#E9EAEC',children}){
+  const r=(size-sw)/2,C=2*Math.PI*r;
+  return (
+    <div style={{position:'relative',width:size,height:size,flexShrink:0}}>
+      <svg width={size} height={size} style={{transform:'rotate(-90deg)'}}>
+        <circle cx={size/2} cy={size/2} r={r} stroke={track} strokeWidth={sw} fill="none"/>
+        <circle cx={size/2} cy={size/2} r={r} stroke={color} strokeWidth={sw} fill="none"
+          strokeDasharray={C} strokeDashoffset={C*(1-pct/100)} strokeLinecap="round"/>
+      </svg>
+      <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>{children}</div>
+    </div>
+  );
+}
+function Switch({on,onClick}){
+  return (
+    <div onClick={onClick} style={{width:42,height:25,borderRadius:13,background:on?'var(--green)':'#CBCFD6',
+      position:'relative',transition:'background .2s',flexShrink:0,cursor:'pointer'}}>
+      <div style={{position:'absolute',top:2.5,left:on?19.5:2.5,width:20,height:20,borderRadius:'50%',
+        background:'#fff',boxShadow:'0 1px 3px rgba(0,0,0,.25)',transition:'left .2s'}}/>
+    </div>
+  );
+}
+function GhostBtn({icon,children,danger,onClick,style}){
+  return (
+    <button onClick={onClick} style={{
+      display:'inline-flex',alignItems:'center',gap:6,height:32,padding:'0 12px',
+      borderRadius:8,fontSize:13,fontWeight:500,color:danger?'var(--red)':'var(--text1)',
+      transition:'background .12s',whiteSpace:'nowrap',...style
+    }}
+    onMouseEnter={e=>e.currentTarget.style.background=danger?'var(--red-lt)':'var(--hover)'}
+    onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+      {icon && <I name={icon} size={16}/>}
+      {children}
+    </button>
+  );
+}
+function PrimaryBtn({icon,children,onClick,style}){
+  return (
+    <button onClick={onClick} style={{
+      display:'inline-flex',alignItems:'center',gap:6,height:34,padding:'0 14px',
+      borderRadius:8,fontSize:13,fontWeight:600,color:'#fff',background:'var(--accent)',
+      boxShadow:'0 1px 2px rgba(62,99,221,.4)',transition:'background .12s',whiteSpace:'nowrap',...style
+    }}
+    onMouseEnter={e=>e.currentTarget.style.background='var(--accent-h)'}
+    onMouseLeave={e=>e.currentTarget.style.background='var(--accent)'}>
+      {icon && <I name={icon} size={16}/>}
+      {children}
+    </button>
+  );
+}
+
+const TYPE_META={
+  folder:{c:'#3E63DD',bg:'#EAEFFE',ic:'folder'},
+  doc:{c:'#2E90FA',bg:'#E8F3FF',ic:'doc'},
+  sheet:{c:'#30A46C',bg:'#E5F6EC',ic:'sheet'},
+  slide:{c:'#F76B15',bg:'#FEF0E5',ic:'slide'},
+  pdf:{c:'#D13438',bg:'#FEECEC',ic:'doc'},
+  img:{c:'#8E4EC6',bg:'#F5EDFB',ic:'img'},
+  video:{c:'#C2255C',bg:'#FBEBF1',ic:'video'},
+  audio:{c:'#0EA5A5',bg:'#E0F5F4',ic:'audio'},
+  zip:{c:'#A1662F',bg:'#F7EFE2',ic:'zip'},
+  code:{c:'#6E56CF',bg:'#EFEDFC',ic:'code'},
+};
+function TypeIcon({type,size=36,radius=9}){
+  const m=TYPE_META[type]||TYPE_META.doc;
+  return (
+    <div style={{width:size,height:size,borderRadius:radius,background:m.bg,flexShrink:0,
+      display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <I name={m.ic} size={size*0.52} color={m.c} sw={1.6}/>
+    </div>
+  );
+}
+
+const PALETTES=[
+  ['#FFD3A5','#FD9781'],['#89B4FA','#7C5CD6'],['#99E2B4','#3FA67A'],
+  ['#FBC7D4','#9796F0'],['#84FAB0','#59B4D9'],['#FCCB90','#E48BC7'],
+  ['#4FACFE','#5EEAD4'],['#F6D365','#FDA085'],['#C1DFC4','#4CA1AF'],
+  ['#E0C3FC','#8EC5FC'],['#FFE5B4','#F49AB5'],['#A8EADB','#5B9FE3'],
+];
+function Photo({seed,style}){
+  const p=PALETTES[seed%PALETTES.length];
+  const v=seed%3;
+  const sunX=26+(seed*37)%52, sunY=26+(seed*17)%20, sr=8+(seed%5);
+  const hills = v===0
+    ? <path d="M0 78 L24 58 L44 74 L62 52 L84 76 L102 62 L120 80 V120 H0 Z" fill="rgba(0,0,0,.14)"/>
+    : v===1
+    ? <path d="M0 82 L30 56 L58 80 L86 54 L120 82 V120 H0 Z" fill="rgba(0,0,0,.14)"/>
+    : <path d="M0 72 C24 60 40 84 66 66 C88 52 104 74 120 68 V120 H0 Z" fill="rgba(0,0,0,.14)"/>;
+  return (
+    <svg viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" style={{display:'block',width:'100%',height:'100%',...style}}>
+      <defs>
+        <linearGradient id={`pg${seed}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={p[0]}/><stop offset="100%" stopColor={p[1]}/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill={`url(#pg${seed})`}/>
+      <circle cx={sunX} cy={sunY} r={sr} fill="#FFF" opacity="0.85"/>
+      {hills}
+      <path d="M0 94 L34 78 L64 92 L92 76 L120 88 V120 H0 Z" fill="rgba(0,0,0,.22)"/>
+    </svg>
+  );
+}
+const INITIAL_DOCS=[
+  {id:'d1',name:'项目资料',type:'folder',modified:'今天 14:32'},
+  {id:'d1-1',name:'发布会策划案.docx',type:'doc',parent:'d1',size:'3.2 MB',modified:'今天 13:05'},
+  {id:'d1-2',name:'现场执行清单.xlsx',type:'sheet',parent:'d1',size:'88 KB',modified:'昨天 17:42'},
+  {id:'d1-3',name:'舞台设计效果图.png',type:'img',parent:'d1',size:'12.4 MB',modified:'08-20 10:18',star:true},
+  {id:'d1-4',name:'场地租赁合同.pdf',type:'pdf',parent:'d1',size:'1.8 MB',modified:'08-18 09:26'},
+  {id:'d1-5',name:'活动流程编排.key',type:'slide',parent:'d1',size:'22 MB',modified:'08-17 20:11'},
+  {id:'d2',name:'客户提案',type:'folder',modified:'昨天 18:05'},
+  {id:'d2-1',name:'品牌升级提案.pptx',type:'slide',parent:'d2',size:'46 MB',modified:'昨天 18:02',shared:true},
+  {id:'d2-2',name:'服务报价单.xlsx',type:'sheet',parent:'d2',size:'120 KB',modified:'08-19 15:30'},
+  {id:'d2-3',name:'成功案例合集.pdf',type:'pdf',parent:'d2',size:'8.9 MB',modified:'08-16 11:47'},
+  {id:'d3',name:'产品发布会主视觉.png',type:'img',size:'8.6 MB',modified:'今天 11:20',star:true},
+  {id:'d4',name:'发布会宣传片.mp4',type:'video',size:'482 MB',modified:'昨天 20:14',shared:true},
+  {id:'d5',name:'产品需求文档 v3.docx',type:'doc',size:'2.4 MB',modified:'08-19 09:41'},
+  {id:'d6',name:'Q3 预算表.xlsx',type:'sheet',size:'340 KB',modified:'08-18 16:27',shared:true},
+  {id:'d7',name:'设计资源包.zip',type:'zip',size:'126 MB',modified:'08-15 10:03',star:true},
+  {id:'d8',name:'发布会 Keynote.key',type:'slide',size:'64 MB',modified:'08-14 22:30'},
+  {id:'d9',name:'会议纪要 0812.pdf',type:'pdf',size:'1.1 MB',modified:'08-12 14:08'},
+  {id:'d10',name:'官网重构源码',type:'folder',modified:'08-10 11:26'},
+  {id:'d10-1',name:'index.html',type:'code',parent:'d10',size:'42 KB',modified:'08-10 11:20'},
+  {id:'d10-2',name:'theme.css',type:'code',parent:'d10',size:'18 KB',modified:'08-09 22:54'},
+  {id:'d10-3',name:'素材打包.zip',type:'zip',parent:'d10',size:'86 MB',modified:'08-09 22:50'},
+];
+const RECENT_GROUPS=[
+  {group:'今天',items:[
+    {name:'产品发布会主视觉.png',type:'img',action:'已编辑',time:'11:20'},
+    {name:'Q3 预算表.xlsx',type:'sheet',action:'已查看',time:'09:47'},
+    {name:'会议纪要 0812.pdf',type:'pdf',action:'分享了链接',time:'08:15'},
+  ]},
+  {group:'昨天',items:[
+    {name:'发布会宣传片.mp4',type:'video',action:'已上传',time:'20:14'},
+    {name:'客户提案',type:'folder',action:'已整理',time:'18:05'},
+    {name:'设计资源包.zip',type:'zip',action:'已下载',time:'15:32'},
+  ]},
+  {group:'本周早些时候',items:[
+    {name:'产品需求文档 v3.docx',type:'doc',action:'已编辑',time:'周一'},
+    {name:'团建照片精选',type:'folder',action:'已上传',time:'周日'},
+  ]},
+];
+const SHARES_OUT=[
+  {id:'s1',name:'产品发布会资料',type:'folder',access:'link-view',expiry:'2026/09/30 到期',views:'128 次浏览',members:['张伟','李娜'],labels:['Z','L']},
+  {id:'s2',name:'Q3 预算表.xlsx',type:'sheet',access:'link-edit',lock:true,views:'32 次编辑',members:[],labels:[]},
+  {id:'s3',name:'设计资源包.zip',type:'zip',access:'invite',views:'—',members:['张伟','李娜','陈望舒'],labels:['Z','L','C']},
+  {id:'s4',name:'团建照片精选',type:'folder',access:'link-view',expired:true,views:'56 次浏览',members:['王芳'],labels:['W']},
+];
+const SHARES_IN=[
+  {id:'si1',owner:'张伟',name:'2026 品牌升级方案',type:'folder',perm:'可编辑',time:'3 天前共享'},
+  {id:'si2',owner:'李娜',name:'市场调研数据汇总.xlsx',type:'sheet',perm:'可查看',time:'1 周前共享'},
+  {id:'si3',owner:'陈望舒',name:'产品发布会素材',type:'folder',perm:'可编辑',time:'2 周前共享'},
+];
+const TRASH_SEED=[
+  {id:'t1',name:'旧版官网设计稿.sketch',type:'code',orig:'我的文件 / 项目资料',deleted:'3 天前',days:27},
+  {id:'t2',name:'会议录像 0728.mp4',type:'video',orig:'我的文件',deleted:'1 周前',days:23},
+  {id:'t3',name:'临时截图 0803.png',type:'img',orig:'我的文件',deleted:'2 周前',days:16},
+  {id:'t4',name:'文案草稿.txt',type:'doc',orig:'我的文件 / 客户提案',deleted:'3 周前',days:9},
+];
+const TRANSFERS=[
+  {id:'x1',dir:'up',name:'发布会宣传片.mp4',done:'342 MB',total:'482 MB',pct:71,speed:'12.4 MB/s',eta:'剩余 12 秒',status:'active'},
+  {id:'x2',dir:'down',name:'客户素材包.rar',done:'89 MB',total:'156 MB',pct:57,speed:'8.2 MB/s',eta:'剩余 9 秒',status:'active'},
+  {id:'x3',dir:'up',name:'设计源文件合集.zip',total:'2.1 GB',status:'queued'},
+  {id:'x4',dir:'up',name:'产品发布会主视觉.png',total:'8.6 MB',status:'instant'},
+  {id:'x5',dir:'down',name:'婚礼视频原始素材.mp4',total:'1.8 GB',status:'failed',resume:'已保留断点 1.2 GB'},
+  {id:'x6',dir:'up',name:'会议录音.m4a',total:'24 MB',status:'done',when:'今天 14:02'},
+];
+
+function Logo({size=26}){
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32">
+      <rect x="1" y="1" width="30" height="30" rx="9" fill="#3E63DD"/>
+      <path d="M22 22H11a5.5 5.5 0 1 1 5.27-7H22a3.5 3.5 0 1 1 0 7Z" fill="#fff"/>
+    </svg>
+  );
+}
+function NewBtn(){
+  const [open,setOpen]=useState(false);
+  const items=[
+    ['folderPlus','新建文件夹'],['upload','上传文件'],['monitor','上传文件夹'],['docPlus','在线文档'],
+  ];
+  return (
+    <div style={{position:'relative'}}>
+      <button onClick={()=>setOpen(!open)} style={{
+        width:'100%',height:38,borderRadius:9,background:'var(--accent)',color:'#fff',
+        fontSize:13.5,fontWeight:600,display:'flex',alignItems:'center',justifyContent:'center',gap:7,
+        boxShadow:'0 1px 2px rgba(62,99,221,.45), inset 0 1px 0 rgba(255,255,255,.15)',
+        transition:'background .12s'
+      }}
+      onMouseEnter={e=>e.currentTarget.style.background='var(--accent-h)'}
+      onMouseLeave={e=>e.currentTarget.style.background='var(--accent)'}>
+        <I name="plus" size={16} sw={2.2}/> 新建
+      </button>
+      {open && (
+        <React.Fragment>
+          <div style={{position:'fixed',inset:0,zIndex:30}} onClick={()=>setOpen(false)}/>
+          <div className="pop-in" style={{position:'absolute',top:44,left:0,width:200,background:'#fff',
+            borderRadius:12,border:'1px solid var(--border)',boxShadow:'0 10px 36px rgba(18,22,33,.13)',
+            padding:6,zIndex:31}}>
+            {items.map(pair=>(
+              <button key={pair[1]} onClick={()=>setOpen(false)} className="row-hover"
+                style={{display:'flex',alignItems:'center',gap:10,width:'100%',height:34,padding:'0 10px',
+                borderRadius:7,fontSize:13,color:'var(--text1)'}}>
+                <I name={pair[0]} size={16.5} color="var(--text2)"/>{pair[1]}
+              </button>
+            ))}
+          </div>
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+function Sidebar({page,onNav}){
+  const NAV=[
+    ['files','我的文件','folder',null],
+    ['recent','最近','clock',null],
+    ['starred','收藏','star',null],
+    ['shared','共享','users',{n:3}],
+    ['trash','回收站','trash',null],
+    ['photos','相册','img',null],
+    ['transfers','传输','transfer',{n:2,blue:true}],
+  ];
+  const seg=[{w:'8%',c:'var(--accent)'},{w:'13.8%',c:'var(--purple)'},{w:'6.6%',c:'var(--pink)'}];
+  return (
+    <aside style={{width:230,flexShrink:0,background:'#FBFBFC',borderRight:'1px solid var(--border)',
+      display:'flex',flexDirection:'column',padding:'14px 12px'}}>
+      <div style={{display:'flex',alignItems:'center',gap:9,padding:'2px 8px 14px'}}>
+        <Logo/>
+        <span style={{fontSize:15.5,fontWeight:700,letterSpacing:'-0.01em'}}>Nimbus</span>
+      </div>
+      <NewBtn/>
+      <nav style={{marginTop:14,display:'flex',flexDirection:'column',gap:2}}>
+        {NAV.map(item=>{
+          const id=item[0],label=item[1],ic=item[2],badge=item[3];
+          const active=page===id;
+          return (
+            <button key={id} onClick={()=>onNav(id)} style={{
+              display:'flex',alignItems:'center',gap:10,height:36,padding:'0 10px',
+              borderRadius:8,fontSize:13.5,fontWeight:active?600:500,
+              color:active?'var(--accent)':'var(--text2)',
+              background:active?'var(--accent-lt)':'transparent',
+              transition:'all .12s ease',textAlign:'left'
+            }}
+            onMouseEnter={e=>{if(!active)e.currentTarget.style.background='var(--hover)'}}
+            onMouseLeave={e=>{if(!active)e.currentTarget.style.background='transparent'}}>
+              <I name={ic} size={17.5} filled={active&&id==='starred'}/>
+              <span style={{flex:1}}>{label}</span>
+              {badge && <Badge color={badge.blue?'blue':'gray'}>{badge.n}</Badge>}
+            </button>
+          );
+        })}
+      </nav>
+      <div style={{marginTop:'auto'}}>
+        <div style={{background:'#fff',border:'1px solid var(--border)',borderRadius:12,padding:14}}>
+          <div style={{fontSize:12.5,fontWeight:600,marginBottom:2}}>存储空间</div>
+          <div style={{fontSize:11.5,color:'var(--text3)',marginBottom:10}}>46.5 GB / 128 GB</div>
+          <div style={{display:'flex',gap:3,height:6,borderRadius:3,overflow:'hidden',background:'#ECEDEF',marginBottom:10}}>
+            {seg.map((s,i)=><div key={i} style={{width:s.w,background:s.c,borderRadius:2}}/>)}
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:5,marginBottom:12}}>
+            {[['文档','10.2 GB','var(--accent)'],['照片','17.6 GB','var(--purple)'],['视频','8.4 GB','var(--pink)']].map(row=>(
+              <div key={row[0]} style={{display:'flex',alignItems:'center',gap:6,fontSize:11.5,color:'var(--text2)'}}>
+                <span style={{width:7,height:7,borderRadius:2,background:row[2]}}/>
+                <span style={{flex:1}}>{row[0]}</span><span style={{color:'var(--text3)'}}>{row[1]}</span>
+              </div>
+            ))}
+          </div>
+          <button style={{width:'100%',height:30,borderRadius:7,border:'1px solid var(--border2)',
+            fontSize:12,fontWeight:600,color:'var(--accent)',background:'#fff',transition:'all .12s'}}
+            onMouseEnter={e=>{e.currentTarget.style.background='var(--accent-lt)';e.currentTarget.style.borderColor='var(--accent-lt2)'}}
+            onMouseLeave={e=>{e.currentTarget.style.background='#fff';e.currentTarget.style.borderColor='var(--border2)'}}>
+            升级扩容
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
+}
+function TopBar({title}){
+  return (
+    <header style={{height:58,flexShrink:0,display:'flex',alignItems:'center',gap:14,
+      padding:'0 24px',borderBottom:'1px solid var(--border)',background:'#fff'}}>
+      <div style={{fontSize:14,fontWeight:600}}>{title}</div>
+      <div style={{flex:1}}/>
+      <div style={{display:'flex',alignItems:'center',gap:8,width:280,height:36,padding:'0 12px',
+        borderRadius:9,background:'var(--bg-app)',color:'var(--text3)'}}>
+        <I name="search" size={16}/>
+        <input placeholder="搜索你的文件…" style={{flex:1,fontSize:13,color:'var(--text1)'}}/>
+        <kbd>⌘K</kbd>
+      </div>
+      <button className="row-hover" style={{position:'relative',width:36,height:36,borderRadius:9,
+        display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text2)'}}>
+        <I name="bell" size={18}/>
+        <span style={{position:'absolute',top:8,right:9,width:7,height:7,borderRadius:50,
+          background:'var(--red)',border:'1.5px solid #fff'}}/>
+      </button>
+      <div style={{width:1,height:22,background:'var(--border)'}}/>
+      <Avatar name="林一舟" label="林" size={32}/>
+    </header>
+  );
+}
+function PageHead({title,count,right}){
+  return (
+    <div style={{display:'flex',alignItems:'center',marginBottom:18,gap:12}}>
+      <div>
+        <div style={{fontSize:19,fontWeight:700,letterSpacing:'-0.01em'}}>{title}</div>
+        {count && <div style={{fontSize:12.5,color:'var(--text3)',marginTop:1}}>{count}</div>}
+      </div>
+      <div style={{flex:1}}/>
+      {right}
+    </div>
+  );
+}
+function ViewToggle({view,onChange}){
+  return (
+    <div style={{display:'flex',background:'var(--bg-app)',borderRadius:8,padding:3,gap:2}}>
+      {['list','grid'].map(v=>(
+        <button key={v} onClick={()=>onChange(v)} style={{
+          width:30,height:28,borderRadius:6,display:'flex',alignItems:'center',justifyContent:'center',
+          color:view===v?'var(--text1)':'var(--text3)',
+          background:view===v?'#fff':'transparent',
+          boxShadow:view===v?'0 1px 3px rgba(18,22,33,.1)':'none',
+          transition:'all .15s'}}>
+          <I name={v} size={16}/>
+        </button>
+      ))}
+    </div>
+  );
+}
+function SegControl({value,onChange,options}){
+  return (
+    <div style={{display:'inline-flex',background:'#EFF0F2',borderRadius:9,padding:3,gap:2,marginBottom:18}}>
+      {options.map(o=>(
+        <button key={o[0]} onClick={()=>onChange(o[0])} style={{
+          height:30,padding:'0 13px',borderRadius:6.5,fontSize:13,
+          fontWeight:value===o[0]?600:500,color:value===o[0]?'var(--text1)':'var(--text3)',
+          background:value===o[0]?'#fff':'transparent',
+          boxShadow:value===o[0]?'0 1px 3px rgba(18,22,33,.1)':'none',
+          transition:'all .15s',display:'flex',alignItems:'center',gap:6}}>
+          {o[1]}<Badge color={value===o[0]?'blue':'gray'} style={{padding:'1px 6px',fontSize:10.5}}>{o[2]}</Badge>
+        </button>
+      ))}
+    </div>
+  );
+}
+function SecondarySm({icon,label,onClick,style}){
+  return (
+    <button onClick={onClick} style={{display:'inline-flex',alignItems:'center',gap:6,height:30,
+      padding:label?'0 12px':'0 8px',borderRadius:7,border:'1px solid var(--border2)',background:'#fff',
+      fontSize:12.5,fontWeight:500,color:'var(--text1)',transition:'all .12s',whiteSpace:'nowrap',...style}}
+      onMouseEnter={e=>{e.currentTarget.style.background='var(--bg-app)';e.currentTarget.style.borderColor='#C6CAD1'}}
+      onMouseLeave={e=>{e.currentTarget.style.background='#fff';e.currentTarget.style.borderColor='var(--border2)'}}>
+      <I name={icon} size={14.5} color="var(--text2)"/>{label}
+    </button>
+  );
+}
+function IconAct({icon,tip,danger,gold,onClick}){
+  const c=gold?'#F5A623':danger?'var(--text3)':'var(--text2)';
+  return (
+    <button title={tip} onClick={onClick} style={{
+      width:30,height:30,borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',
+      color:c,transition:'all .12s',flexShrink:0}}
+      onMouseEnter={e=>{e.currentTarget.style.background=danger?'var(--red-lt)':'var(--hover)';
+        e.currentTarget.style.color=danger?'var(--red)':'var(--text1)'}}
+      onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color=c}}>
+      <I name={icon} size={16}/>
+    </button>
+  );
+}
+function FileTable({rows,sel,onToggle,onSelAll,onStar,onDelete,onOpen}){
+  const allSel=rows.length>0 && rows.every(r=>sel.has(r.id));
+  return (
+    <div style={{background:'#fff',border:'1px solid var(--border)',borderRadius:12,overflow:'hidden'}}>
+      <div style={{display:'flex',alignItems:'center',height:40,padding:'0 18px',
+        fontSize:12,color:'var(--text3)',borderBottom:'1px solid var(--border)',background:'#FBFBFC',gap:14}}>
+        <Checkbox checked={allSel} dim={!allSel} onChange={()=>onSelAll(allSel)}/>
+        <div style={{flex:1}}>名称</div>
+        <div style={{width:110}}>大小</div>
+        <div style={{width:150}}>修改时间</div>
+        <div style={{width:136}}/>
+      </div>
+      {rows.map(f=>(
+        <div key={f.id} onClick={()=>onOpen(f)} className="row-hover"
+          style={{display:'flex',alignItems:'center',height:52,padding:'0 18px',gap:14,cursor:'pointer',
+            borderBottom:'1px solid #F1F2F4',
+            background:sel.has(f.id)?'var(--accent-lt)':'transparent'}}>
+          <Checkbox checked={sel.has(f.id)} onChange={()=>onToggle(f.id)}/>
+          <div style={{flex:1,minWidth:0,display:'flex',alignItems:'center',gap:12}}>
+            <TypeIcon type={f.type} size={34}/>
+            <div style={{minWidth:0}}>
+              <div style={{display:'flex',alignItems:'center',gap:7}}>
+                <span style={{fontSize:13.5,fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{f.name}</span>
+                {f.shared && <I name="users" size={13} color="var(--accent)"/>}
+              </div>
+              {f.type==='folder' && <div style={{fontSize:11.5,color:'var(--text3)'}}>{f.items} 个项目</div>}
+            </div>
+          </div>
+          <div style={{width:110,fontSize:12.5,color:'var(--text2)'}}>{f.size||(f.items+' 项')}</div>
+          <div style={{width:150,fontSize:12.5,color:'var(--text2)'}}>{f.modified}</div>
+          <div className="row-actions" style={{width:136,display:'flex',justifyContent:'flex-end',gap:2,
+            opacity:f.star?1:0,transition:'opacity .12s'}}>
+            <IconAct icon="download" tip="下载"/>
+            <IconAct icon="link" tip="分享"/>
+            <IconAct icon="star" tip="收藏" gold={f.star} onClick={e=>{e.stopPropagation();onStar(f.id)}}/>
+            <IconAct icon="trash" tip="删除" danger onClick={e=>{e.stopPropagation();onDelete([f.id])}}/>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+function FileGrid({rows,sel,onToggle,onStar,onOpen}){
+  return (
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(196px,1fr))',gap:14}}>
+      {rows.map(f=>(
+        <div key={f.id} onClick={()=>onOpen(f)}
+          style={{background:'#fff',border:sel.has(f.id)?'1.5px solid var(--accent)':'1px solid var(--border)',
+            borderRadius:12,padding:16,cursor:'pointer',position:'relative',
+            transition:'all .15s ease',boxShadow:sel.has(f.id)?'0 0 0 3px var(--accent-lt2)':'0 1px 2px rgba(18,22,33,.03)'}}
+          onMouseEnter={e=>{if(!sel.has(f.id)){e.currentTarget.style.boxShadow='0 4px 14px rgba(18,22,33,.08)';e.currentTarget.style.transform='translateY(-1px)'}}}
+          onMouseLeave={e=>{e.currentTarget.style.boxShadow=sel.has(f.id)?'0 0 0 3px var(--accent-lt2)':'0 1px 2px rgba(18,22,33,.03)';e.currentTarget.style.transform='none'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+            <TypeIcon type={f.type} size={40} radius={11}/>
+            {f.star && <I name="star" size={15} color="#F5A623" filled/>}
+          </div>
+          <div style={{marginTop:12,fontSize:13.5,fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{f.name}</div>
+          <div style={{fontSize:11.5,color:'var(--text3)',marginTop:2}}>
+            {f.type==='folder'?`${f.items} 个项目 · ${f.modified}`:`${f.size} · ${f.modified}`}
+          </div>
+          <div style={{position:'absolute',top:12,right:12,opacity:sel.has(f.id)?1:0}} className="row-actions">
+            <Checkbox checked={sel.has(f.id)} dim={!sel.has(f.id)} onChange={()=>onToggle(f.id)}/>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+function DocPageMock(){
+  return (
+    <div style={{width:340,minHeight:460,background:'#fff',borderRadius:6,boxShadow:'0 8px 30px rgba(18,22,33,.14)',padding:'38px 34px'}}>
+      <div style={{height:14,width:'62%',background:'#2B3037',borderRadius:3,marginBottom:20}}/>
+      {[...Array(16)].map((_,i)=>(
+        <div key={i} style={{height:7,marginBottom:9,borderRadius:3,
+          width:i===0?'100%':`${88-((i*13)%36)}%`,
+          background:i%7===6?'transparent':(i===0?'#D6D9DE':'#E8EAED')}}/>
+      ))}
+    </div>
+  );
+}
+function SheetMock(){
+  const head=['项目','Q1','Q2','Q3','环比'];
+  const data=[
+    ['销售额','284,000','312,500','358,200','+14.6%'],
+    ['新增客户','1,284','1,462','1,708','+16.8%'],
+    ['续费率','86.2%','88.5%','91.3%','+2.8pp'],
+    ['客单价','2,210','2,360','2,480','+5.1%'],
+  ];
+  return (
+    <div style={{background:'#fff',borderRadius:10,boxShadow:'0 10px 36px rgba(18,22,33,.15)',overflow:'hidden'}}>
+      <div style={{display:'flex',background:'#30A46C'}}>
+        {head.map(h=>(
+          <div key={h} style={{width:104,padding:'9px 12px',fontSize:11.5,fontWeight:600,color:'#fff',
+            borderRight:'1px solid rgba(255,255,255,.18)'}}>{h}</div>
+        ))}
+      </div>
+      {data.map((r,ri)=>(
+        <div key={ri} style={{display:'flex',borderTop:ri?'1px solid #EEF0F2':'none'}}>
+          {r.map((c,ci)=>(
+            <div key={ci} style={{width:104,padding:'9px 12px',fontSize:11.5,
+              borderRight:ci<4?'1px solid #F2F3F5':'none',
+              fontWeight:ci===0?600:400,
+              color:ci===4?'var(--green)':'var(--text1)',
+              background:ci===4?'var(--green-lt)':'transparent',
+              textAlign:ci===0?'left':'right'}}>{c}</div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+function SlideMock(){
+  return (
+    <div style={{width:560,maxWidth:'100%',aspectRatio:'16/9',background:'#fff',borderRadius:10,
+      boxShadow:'0 12px 40px rgba(18,22,33,.18)',padding:'36px 40px',position:'relative',overflow:'hidden'}}>
+      <div style={{width:170,height:16,background:'#23272E',borderRadius:4}}/>
+      <div style={{width:110,height:8,background:'#C9CDD3',borderRadius:4,marginTop:12}}/>
+      <div style={{marginTop:28,display:'flex',flexDirection:'column',gap:14}}>
+        {[210,168,190].map((w,i)=>(
+          <div key={i} style={{display:'flex',alignItems:'center',gap:10}}>
+            <span style={{width:7,height:7,borderRadius:50,background:'var(--accent)'}}/>
+            <span style={{height:8,width:w,background:'#E4E6EA',borderRadius:4}}/>
+          </div>
+        ))}
+      </div>
+      <div style={{position:'absolute',right:-44,bottom:-44,width:160,height:160,borderRadius:'50%',background:'var(--accent-lt)'}}/>
+      <div style={{position:'absolute',right:24,bottom:16,fontSize:10.5,color:'var(--text3)'}}>01 / 18</div>
+    </div>
+  );
+}
+function CodeMock({name}){
+  const lines=[
+    [['#C678DD',52],['#E0A458',110]],
+    [['#5C6470',160,1]],
+    [['#7C8CF8',96,1],['#4FB58B',70]],
+    [['#C678DD',40,1],['#9DA5B4',130]],
+    [['#5C6470',180,2]],
+    [['#4FB58B',120,2]],
+    [['#7C8CF8',88,1]],
+    [['#C678DD',64],['#E0A458',96]],
+    [['#5C6470',140,1]],
+    [['#4FB58B',104,1],['#9DA5B4',60]],
+  ];
+  return (
+    <div style={{width:560,maxWidth:'100%',background:'#16181D',borderRadius:12,boxShadow:'0 12px 40px rgba(18,22,33,.3)',overflow:'hidden'}}>
+      <div style={{display:'flex',alignItems:'center',gap:7,padding:'11px 14px',background:'#1E2127'}}>
+        <span style={{width:11,height:11,borderRadius:50,background:'#FF5F57'}}/>
+        <span style={{width:11,height:11,borderRadius:50,background:'#FEBC2E'}}/>
+        <span style={{width:11,height:11,borderRadius:50,background:'#28C840'}}/>
+        <span style={{marginLeft:10,fontSize:11,color:'#9DA5B4'}}>{name}</span>
+      </div>
+      <div style={{padding:'18px 20px 22px'}}>
+        {lines.map((segs,i)=>(
+          <div key={i} style={{display:'flex',gap:8,marginBottom:9,paddingLeft:(segs[0][2]||0)*20}}>
+            {segs.map((s,j)=>(
+              <div key={j} style={{height:7,width:s[1],borderRadius:3.5,background:s[0],opacity:.92}}/>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+const PREVIEW_TYPE={img:'图片 · PNG',video:'视频 · MP4',doc:'文档 · DOCX',pdf:'PDF 文档',sheet:'表格 · XLSX',slide:'演示文稿 · KEY',zip:'压缩包 · ZIP',code:'代码文件',audio:'音频 · M4A'};
+function ImgView({file,seed}){
+  return (
+    <div style={{width:'min(600px,100%)'}}>
+      <div style={{borderRadius:14,overflow:'hidden',boxShadow:'0 12px 44px rgba(18,22,33,.2)',background:'#fff'}}>
+        <div style={{aspectRatio:'4/3'}}><Photo seed={seed}/></div>
+        <div style={{display:'flex',justifyContent:'space-between',gap:12,padding:'10px 16px',fontSize:11.5,color:'var(--text3)'}}>
+          <span style={{fontWeight:600,color:'var(--text2)'}}>{file.name}</span>
+          <span>3840 x 2880 · {file.size}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+function VideoView({showToast}){
+  return (
+    <div style={{width:'min(700px,100%)'}}>
+      <div style={{aspectRatio:'16/9',background:'#101216',borderRadius:14,position:'relative',boxShadow:'0 12px 44px rgba(18,22,33,.3)'}}>
+        <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <button onClick={()=>showToast('开始播放')} style={{width:70,height:70,borderRadius:'50%',background:'rgba(255,255,255,.96)',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 10px 34px rgba(0,0,0,.45)'}}
+            onMouseEnter={e=>e.currentTarget.style.transform='scale(1.06)'}
+            onMouseLeave={e=>e.currentTarget.style.transform='none'}>
+            <div style={{marginLeft:4}}><I name="play" size={26} color="#1C2024" filled/></div>
+          </button>
+        </div>
+        <div style={{position:'absolute',left:0,right:0,bottom:0,padding:'0 18px 13px'}}>
+          <ProgressLine pct={35} h={4} track="rgba(255,255,255,.22)" color="#F5A623"/>
+          <div style={{display:'flex',alignItems:'center',gap:13,marginTop:10,color:'#fff'}}>
+            <I name="play" size={14} color="#fff" filled/>
+            <span style={{fontSize:11,opacity:.92}}>01:16 / 03:24</span>
+            <div style={{flex:1}}/>
+            <I name="audio" size={15} color="#fff"/>
+            <I name="settings" size={15} color="#fff"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+function AudioView({file}){
+  return (
+    <div style={{width:380,maxWidth:'100%',background:'#fff',borderRadius:16,boxShadow:'0 12px 44px rgba(18,22,33,.2)',padding:24}}>
+      <div style={{display:'flex',gap:14,alignItems:'center'}}>
+        <div style={{width:84,height:84,borderRadius:12,background:'linear-gradient(135deg,#3E63DD,#8E4EC6)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+          <I name="audio" size={30} color="#fff"/>
+        </div>
+        <div style={{minWidth:0}}>
+          <div style={{fontSize:14,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{file.name}</div>
+          <div style={{fontSize:11.5,color:'var(--text3)',marginTop:3}}>会议录制 · {file.size}</div>
+        </div>
+      </div>
+      <div style={{marginTop:20}}><ProgressLine pct={42} h={5}/></div>
+      <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--text3)',marginTop:7}}>
+        <span>01:38</span><span>03:54</span>
+      </div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:26,marginTop:16}}>
+        <span style={{display:'flex'}}><I name="restore" size={18} color="var(--text2)"/></span>
+        <button style={{width:48,height:48,borderRadius:'50%',background:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 6px 20px rgba(62,99,221,.4)'}}>
+          <I name="pause" size={18} color="#fff" sw={2.2}/>
+        </button>
+        <span style={{display:'flex',transform:'scaleX(-1)'}}><I name="restore" size={18} color="var(--text2)"/></span>
+      </div>
+    </div>
+  );
+}
+function ZipView({showToast}){
+  return (
+    <div style={{textAlign:'center'}}>
+      <div style={{width:78,height:78,borderRadius:'50%',background:'#fff',boxShadow:'0 8px 30px rgba(18,22,33,.12)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto'}}>
+        <I name="zip" size={32} color="#A1662F"/>
+      </div>
+      <div style={{marginTop:18,fontSize:14.5,fontWeight:600}}>压缩包暂不支持在线预览</div>
+      <div style={{fontSize:12.5,color:'var(--text3)',marginTop:5}}>下载后解压即可查看内容</div>
+      <div style={{marginTop:18}}>
+        <SecondarySm icon="download" label="下载文件" onClick={()=>showToast('已开始下载')}/>
+      </div>
+    </div>
+  );
+}
+function InfoRowNimbus({label,value}){
+  return (
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,padding:'7px 0',fontSize:12.5}}>
+      <span style={{color:'var(--text3)',flexShrink:0}}>{label}</span>
+      <span style={{fontWeight:500,textAlign:'right',minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{value}</span>
+    </div>
+  );
+}
+function PreviewModal({file,docs,onClose,onStar,onDelete,showToast}){
+  useEffect(()=>{
+    const h=e=>{if(e.key==='Escape')onClose();};
+    window.addEventListener('keydown',h);
+    return ()=>window.removeEventListener('keydown',h);
+  },[]);
+  const current=docs.find(d=>d.id===file.id)||file;
+  const parent=docs.find(d=>d.id===current.parent);
+  const loc=parent?`我的文件 / ${parent.name}`:'我的文件';
+  const seed=(current.name.length*3+5)%12;
+  let body=null;
+  if(current.type==='img')body=<ImgView file={current} seed={seed}/>;
+  else if(current.type==='video')body=<VideoView showToast={showToast}/>;
+  else if(current.type==='doc')body=<DocPageMock/>;
+  else if(current.type==='pdf')body=(<div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:14}}><DocPageMock/><Badge color="gray">第 1 页 · 共 12 页</Badge></div>);
+  else if(current.type==='sheet')body=<SheetMock/>;
+  else if(current.type==='slide')body=<SlideMock/>;
+  else if(current.type==='audio')body=<AudioView file={current}/>;
+  else if(current.type==='code')body=<CodeMock name={current.name}/>;
+  else if(current.type==='zip')body=<ZipView showToast={showToast}/>;
+  else body=<DocPageMock/>;
+  return ReactDOM.createPortal(
+    <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(20,23,28,.55)',backdropFilter:'blur(3px)',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:'20px 24px'}}>
+      <div className="pop-in" onClick={e=>e.stopPropagation()} style={{width:'min(1000px,92vw)',height:'min(680px,86vh)',maxHeight:'86vh',maxWidth:'92vw',background:'#fff',borderRadius:14,display:'flex',flexDirection:'column',overflow:'hidden',boxShadow:'0 30px 90px rgba(18,22,33,.35)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:12,padding:'13px 18px',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+          <TypeIcon type={current.type} size={38}/>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:15,fontWeight:700,display:'flex',alignItems:'center',gap:8}}>
+              <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{current.name}</span>
+              {current.shared && <Badge color="blue"><I name="users" size={10}/>已共享</Badge>}
+            </div>
+            <div style={{fontSize:11.5,color:'var(--text3)',marginTop:1}}>{loc} · {current.size||'—'}</div>
+          </div>
+          <IconAct icon="download" tip="下载" onClick={()=>showToast('已开始下载')}/>
+          <IconAct icon="link" tip="分享链接" onClick={()=>showToast('分享链接已创建')}/>
+          <IconAct icon="star" tip="收藏" gold={current.star} onClick={()=>onStar(current.id)}/>
+          <IconAct icon="trash" tip="删除" danger onClick={()=>onDelete(current.id)}/>
+          <div style={{width:1,height:20,background:'var(--border)',margin:'0 6px'}}/>
+          <IconAct icon="close" tip="关闭 Esc" onClick={onClose}/>
+        </div>
+        <div style={{flex:1,display:'flex',minHeight:0}}>
+          <div className="app-scroll" style={{flex:1,background:'#EDEEF1',display:'flex',alignItems:'center',justifyContent:'center',padding:36,overflow:'auto'}}>{body}</div>
+          <div style={{width:264,borderLeft:'1px solid var(--border)',padding:'18px 20px',flexShrink:0,overflow:'auto'}}>
+            <div style={{fontSize:13,fontWeight:700,marginBottom:8}}>文件信息</div>
+            <InfoRowNimbus label="类型" value={PREVIEW_TYPE[current.type]||'文件'}/>
+            <InfoRowNimbus label="大小" value={current.size||'—'}/>
+            <InfoRowNimbus label="位置" value={loc}/>
+            <InfoRowNimbus label="所有者" value="林一舟"/>
+            <InfoRowNimbus label="修改时间" value={current.modified||'—'}/>
+            <div style={{padding:'7px 0',fontSize:12.5,display:'flex',justifyContent:'space-between',alignItems:'center',gap:12}}>
+              <span style={{color:'var(--text3)'}}>状态</span>
+              {current.shared?<Badge color="blue">已共享</Badge>:<Badge color="gray">私有</Badge>}
+            </div>
+            <div style={{height:1,background:'var(--border)',margin:'12px 0'}}/>
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              <SecondarySm icon="download" label="下载文件" onClick={()=>showToast('已开始下载')} style={{width:'100%',justifyContent:'center'}}/>
+              <SecondarySm icon="link" label="创建分享链接" onClick={()=>showToast('分享链接已创建')} style={{width:'100%',justifyContent:'center'}}/>
+            </div>
+            <div style={{display:'flex',gap:8,marginTop:8}}>
+              <button onClick={()=>onStar(current.id)} style={{flex:1,height:30,borderRadius:7,border:'1px solid var(--border2)',background:current.star?'#FFF9EC':'#fff',fontSize:12,fontWeight:500,color:current.star?'#B8860B':'var(--text1)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:5}}>
+                <I name="star" size={13} color={current.star?'#F5A623':'var(--text2)'} filled={current.star}/>{current.star?'已收藏':'收藏'}
+              </button>
+              <button onClick={()=>onDelete(current.id)} style={{flex:1,height:30,borderRadius:7,border:'1px solid var(--border2)',background:'#fff',fontSize:12,fontWeight:500,color:'var(--red)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:5}}
+                onMouseEnter={e=>e.currentTarget.style.background='var(--red-lt)'}
+                onMouseLeave={e=>e.currentTarget.style.background='#fff'}>
+                <I name="trash" size={13}/>删除
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+function FilesPage({docs,showToast,actions}){
+  const [view,setView]=useState('list');
+  const [sel,setSel]=useState(new Set());
+  const [folder,setFolder]=useState(null);
+  const [preview,setPreview]=useState(null);
+  const folderObj=folder?docs.find(d=>d.id===folder):null;
+  const rows=docs.filter(d=>(d.parent||null)===folder&&!d.deleted).map(d=>{
+    if(d.type!=='folder')return d;
+    return {...d,items:docs.filter(c=>c.parent===d.id&&!c.deleted).length};
+  });
+  const toggle=id=>setSel(p=>{const s=new Set(p);if(s.has(id))s.delete(id);else s.add(id);return s;});
+  const clearSel=()=>setSel(new Set());
+  const doDelete=ids=>{
+    actions.delete(ids);clearSel();
+    showToast(`已将 ${ids.length} 项移入回收站`);
+  };
+  const openItem=f=>{
+    if(f.type==='folder'){setFolder(f.id);clearSel();}
+    else setPreview(f);
+  };
+  const goRoot=()=>{setFolder(null);clearSel();};
+  return (
+    <div key={view+'-'+(folder||'root')} className="fade-in" style={{maxWidth:1160,margin:'0 auto',padding:'20px 28px 90px'}}>
+      <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:18,minHeight:44}}>
+        {sel.size>0 ? (
+          <div className="slide-up" style={{flex:1,display:'flex',alignItems:'center',gap:6,
+            background:'var(--accent-lt)',border:'1px solid var(--accent-lt2)',borderRadius:10,height:44,padding:'0 8px 0 16px'}}>
+            <I name="check" size={15} color="var(--accent)" sw={2.4}/>
+            <span style={{fontSize:13,fontWeight:600,color:'var(--accent)',marginRight:8}}>已选 {sel.size} 项</span>
+            <GhostBtn icon="download" onClick={()=>showToast(`已开始下载 ${sel.size} 项`)}>下载</GhostBtn>
+            <GhostBtn icon="link" onClick={()=>showToast('分享链接已创建')}>分享</GhostBtn>
+            <GhostBtn icon="star" onClick={()=>{[...sel].forEach(actions.star);showToast('已添加收藏')}}>收藏</GhostBtn>
+            <GhostBtn icon="trash" danger onClick={()=>doDelete([...sel])}>删除</GhostBtn>
+            <div style={{flex:1}}/>
+            <GhostBtn icon="close" onClick={clearSel}>取消</GhostBtn>
+          </div>
+        ) : (
+          <React.Fragment>
+            <div style={{flex:1}}>
+              <div style={{display:'flex',alignItems:'center',gap:7,fontSize:19,fontWeight:700,letterSpacing:'-0.01em'}}>
+                {folderObj ? (
+                  <React.Fragment>
+                    <button onClick={goRoot} style={{color:'var(--text3)',transition:'color .12s'}}
+                      onMouseEnter={e=>e.currentTarget.style.color='var(--accent)'}
+                      onMouseLeave={e=>e.currentTarget.style.color='var(--text3)'}>我的文件</button>
+                    <I name="chevronR" size={16} color="var(--text3)"/>
+                    <span>{folderObj.name}</span>
+                  </React.Fragment>
+                ) : <span>我的文件</span>}
+              </div>
+              <div style={{fontSize:12.5,color:'var(--text3)',marginTop:1}}>
+                {folderObj?`共 ${rows.length} 个项目  ·  点击文件在线预览`:`共 ${rows.length} 项 · 已用 46.5 GB`}
+              </div>
+            </div>
+            <GhostBtn icon="sort">按修改时间</GhostBtn>
+            <ViewToggle view={view} onChange={setView}/>
+            <PrimaryBtn icon="upload" onClick={()=>showToast('已加入上传队列')}>上传</PrimaryBtn>
+          </React.Fragment>
+        )}
+      </div>
+      {rows.length===0 ? (
+        <div style={{padding:'90px 0',textAlign:'center'}}>
+          <div style={{width:76,height:76,borderRadius:'50%',background:'#fff',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto'}}>
+            <I name="folderPlus" size={28} color="var(--text3)"/>
+          </div>
+          <div style={{marginTop:16,fontSize:14.5,fontWeight:600}}>此文件夹为空</div>
+          <div style={{marginTop:5,fontSize:12.5,color:'var(--text3)'}}>点击右上角「上传」添加文件，或拖拽文件到此处</div>
+        </div>
+      ) : (view==='list'
+        ? <FileTable rows={rows} sel={sel} onToggle={toggle}
+            onSelAll={all=>setSel(all?new Set():new Set(rows.map(r=>r.id)))}
+            onStar={actions.star} onDelete={doDelete} onOpen={openItem}/>
+        : <FileGrid rows={rows} sel={sel} onToggle={toggle} onStar={actions.star} onOpen={openItem}/>)}
+      {preview && (
+        <PreviewModal file={preview} docs={docs} onClose={()=>setPreview(null)}
+          onStar={actions.star}
+          onDelete={id=>{actions.delete([id]);setPreview(null);showToast('已移入回收站');}}
+          showToast={showToast}/>
+      )}
+    </div>
+  );
+}
+function RecentPage(){
+  return (
+    <div className="fade-in" style={{maxWidth:1160,margin:'0 auto',padding:'20px 28px 60px'}}>
+      <PageHead title="最近" count="按最近打开时间排列"/>
+      {RECENT_GROUPS.map(g=>(
+        <div key={g.group} style={{marginBottom:10}}>
+          <div style={{fontSize:13,fontWeight:600,color:'var(--text2)',margin:'18px 4px 10px'}}>{g.group}</div>
+          <div style={{background:'#fff',border:'1px solid var(--border)',borderRadius:12,overflow:'hidden'}}>
+            {g.items.map((it,i)=>(
+              <div key={i} className="row-hover" style={{display:'flex',alignItems:'center',gap:13,
+                padding:'0 18px',height:52,cursor:'pointer',
+                borderBottom:i<g.items.length-1?'1px solid #F1F2F4':'none'}}>
+                <TypeIcon type={it.type} size={32}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:13.5,fontWeight:500}}>{it.name}</div>
+                  <div style={{fontSize:11.5,color:'var(--text3)'}}>我的文件</div>
+                </div>
+                <Badge color={it.action.indexOf('编辑')>-1?'blue':it.action.indexOf('分享')>-1?'green':'gray'}>{it.action}</Badge>
+                <div style={{width:70,textAlign:'right',fontSize:12.5,color:'var(--text3)'}}>{it.time}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+function StarredPage({docs,actions,showToast}){
+  const [preview,setPreview]=useState(null);
+  const rows=docs.filter(d=>d.star&&!d.deleted);
+  return (
+    <div className="fade-in" style={{maxWidth:1160,margin:'0 auto',padding:'20px 28px 60px'}}>
+      <PageHead title="收藏" count={`${rows.length} 个收藏项目`}/>
+      <FileTable rows={rows} sel={new Set()} onToggle={()=>{}} onSelAll={()=>{}}
+        onStar={actions.star} onDelete={()=>{}} onOpen={f=>{if(f.type!=='folder')setPreview(f)}}/>
+      <div style={{display:'flex',alignItems:'center',gap:8,marginTop:14,padding:'0 4px',fontSize:12,color:'var(--text3)'}}>
+        <I name="info" size={14}/> 收藏的文件会同步到所有设备，取消收藏不影响原文件。点击文件可在线预览。
+      </div>
+      {preview && (
+        <PreviewModal file={preview} docs={docs} onClose={()=>setPreview(null)}
+          onStar={actions.star}
+          onDelete={id=>{actions.delete([id]);setPreview(null);showToast('已移入回收站');}}
+          showToast={showToast}/>
+      )}
+    </div>
+  );
+}
+function SharePage({showToast}){
+  const [tab,setTab]=useState('out');
+  const ACCESS={
+    'link-view':['eye','任何人可查看','cyan'],
+    'link-edit':['pencil','任何人可编辑','blue'],
+    'invite':['users','仅限受邀成员','purple'],
+  };
+  return (
+    <div className="fade-in" style={{maxWidth:1160,margin:'0 auto',padding:'20px 28px 60px'}}>
+      <PageHead title="共享协作" right={<PrimaryBtn icon="link">新建共享</PrimaryBtn>}/>
+      <SegControl value={tab} onChange={setTab} options={[['out','我创建的共享',SHARES_OUT.length],['in','与我共享',SHARES_IN.length]]}/>
+      {tab==='out' ? (
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          {SHARES_OUT.map(s=>{
+            const meta=ACCESS[s.access];
+            return (
+              <div key={s.id} className="row-hover" style={{display:'flex',alignItems:'center',gap:14,
+                background:'#fff',border:'1px solid var(--border)',borderRadius:12,padding:'13px 18px'}}>
+                <TypeIcon type={s.type} size={38}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8}}>
+                    <span style={{fontSize:13.5,fontWeight:600}}>{s.name}</span>
+                    {s.lock && <I name="shield" size={13} color="var(--text3)"/>}
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:10,marginTop:4,flexWrap:'wrap'}}>
+                    <Badge color={meta[2]}><I name={meta[0]} size={11}/>{meta[1]}</Badge>
+                    <span style={{fontSize:11.5,color:'var(--text3)'}}>{s.views}</span>
+                    <span style={{fontSize:11.5,color:s.expired?'var(--red)':'var(--text3)'}}>
+                      {s.expired?'链接已过期':(s.expiry?`有效期至 ${s.expiry}`:'永久有效')}
+                    </span>
+                  </div>
+                </div>
+                {s.members.length>0 && <AvatarStack names={s.members} labels={s.labels}/>}
+                <div style={{display:'flex',gap:6,marginLeft:6}}>
+                  <SecondarySm icon="copy" label="复制链接" onClick={()=>showToast('链接已复制到剪贴板')}/>
+                  <SecondarySm icon="settings"/>
+                  <SecondarySm icon="more"/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          {SHARES_IN.map(s=>(
+            <div key={s.id} className="row-hover" style={{display:'flex',alignItems:'center',gap:14,
+              background:'#fff',border:'1px solid var(--border)',borderRadius:12,padding:'13px 18px'}}>
+              <Avatar name={s.owner} size={38}/>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:13.5,fontWeight:600}}>{s.name}</div>
+                <div style={{fontSize:11.5,color:'var(--text3)',marginTop:3}}>
+                  来自 {s.owner} · {s.time}
+                </div>
+              </div>
+              <Badge color={s.perm==='可编辑'?'blue':'gray'}>{s.perm}</Badge>
+              <SecondarySm icon="chevronR"/>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+function TrashRowActions({onRestore,onPurge}){
+  return (
+    <div style={{display:'flex',gap:6}}>
+      <button onClick={onRestore} style={{display:'inline-flex',alignItems:'center',gap:5,
+        height:28,padding:'0 10px',borderRadius:7,border:'1px solid var(--border2)',background:'#fff',
+        fontSize:12,fontWeight:500,transition:'all .12s'}}
+        onMouseEnter={e=>e.currentTarget.style.background='var(--green-lt)'}
+        onMouseLeave={e=>e.currentTarget.style.background='#fff'}>
+        <I name="restore" size={13} color="var(--green)"/>恢复
+      </button>
+      <button onClick={onPurge} style={{display:'inline-flex',alignItems:'center',gap:5,
+        height:28,padding:'0 10px',borderRadius:7,border:'1px solid var(--border2)',background:'#fff',
+        fontSize:12,fontWeight:500,color:'var(--red)',transition:'all .12s'}}
+        onMouseEnter={e=>e.currentTarget.style.background='var(--red-lt)'}
+        onMouseLeave={e=>e.currentTarget.style.background='#fff'}>
+        <I name="trash" size={13}/>彻底删除
+      </button>
+    </div>
+  );
+}
+function TrashPage({trash,actions,showToast}){
+  return (
+    <div className="fade-in" style={{maxWidth:1160,margin:'0 auto',padding:'20px 28px 60px'}}>
+      <PageHead title="回收站" count={`${trash.length} 个项目`} right={
+        <GhostBtn icon="trash" danger onClick={()=>showToast('回收站已清空')}>清空回收站</GhostBtn>
+      }/>
+      <div style={{display:'flex',alignItems:'center',gap:9,background:'var(--orange-lt)',
+        borderRadius:10,padding:'10px 16px',marginBottom:16,fontSize:12.5,color:'#8A5A0B'}}>
+        <I name="alert" size={15}/>
+        回收站中的文件将保留 30 天，到期后自动彻底删除。会员可延长至 60 天。
+        <div style={{flex:1}}/>
+        <span style={{fontWeight:600,cursor:'pointer'}}>升级会员</span>
+      </div>
+      <div style={{background:'#fff',border:'1px solid var(--border)',borderRadius:12,overflow:'hidden'}}>
+        <div style={{display:'flex',alignItems:'center',height:40,padding:'0 18px',fontSize:12,color:'var(--text3)',
+          borderBottom:'1px solid var(--border)',background:'#FBFBFC',gap:14}}>
+          <div style={{flex:1}}>名称</div><div style={{width:200}}>原位置</div>
+          <div style={{width:90}}>删除时间</div><div style={{width:100}}>剩余保留</div>
+          <div style={{width:170}}/>
+        </div>
+        {trash.map(t=>(
+          <div key={t.id} className="row-hover" style={{display:'flex',alignItems:'center',gap:14,
+            padding:'0 18px',height:52,borderBottom:'1px solid #F1F2F4'}}>
+            <TypeIcon type={t.type} size={32}/>
+            <div style={{flex:1,fontSize:13.5,fontWeight:500,minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.name}</div>
+            <div style={{width:200,fontSize:12,color:'var(--text3)'}}>{t.orig}</div>
+            <div style={{width:90,fontSize:12,color:'var(--text3)'}}>{t.deleted}</div>
+            <div style={{width:100}}>
+              <Badge color={t.days<=10?'red':t.days<=20?'orange':'green'}>剩 {t.days} 天</Badge>
+            </div>
+            <div style={{width:170,display:'flex',justifyContent:'flex-end'}}>
+              <TrashRowActions
+                onRestore={()=>{actions.restore(t.id);showToast(`「${t.name}」已恢复`)}}
+                onPurge={()=>{actions.purge(t.id);showToast('文件已彻底删除')}}/>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+function PhotosPage(){
+  const aug=[0,1,2,3,4,5,6,7,8,9,10,11];
+  const jul=[24,25,26,27,28,29,30,31];
+  const Group=({title,seeds})=>(
+    <div style={{marginBottom:26}}>
+      <div style={{fontSize:13.5,fontWeight:700,color:'var(--text2)',margin:'0 4px 10px'}}>{title}</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:6}}>
+        {seeds.map((s,i)=>(
+          <div key={i} className="row-hover" style={{position:'relative',aspectRatio:'1',borderRadius:8,overflow:'hidden',cursor:'pointer'}}
+            onMouseEnter={e=>e.currentTarget.style.outline='2.5px solid var(--accent)'}
+            onMouseLeave={e=>e.currentTarget.style.outline='none'}>
+            <Photo seed={s}/>
+            {(s%5===2) && (
+              <div style={{position:'absolute',right:7,top:7,width:22,height:22,borderRadius:'50%',
+                background:'rgba(0,0,0,.45)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <I name="play" size={10} color="#fff" filled/>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+  return (
+    <div className="fade-in" style={{maxWidth:1240,margin:'0 auto',padding:'20px 28px 60px'}}>
+      <PageHead title="相册" count="2,847 张照片 · 184 个视频" right={<PrimaryBtn icon="camera">立即备份</PrimaryBtn>}/>
+      <div style={{display:'flex',alignItems:'center',gap:9,background:'var(--green-lt)',
+        borderRadius:10,padding:'10px 16px',marginBottom:20,fontSize:12.5,color:'#1F6B45'}}>
+        <I name="cloudDown" size={15}/>
+        手机相册自动备份已开启 — 今日已新增 42 张照片，正在后台同步。
+        <div style={{flex:1}}/><Switch on={true}/>
+      </div>
+      <Group title="2026 年 8 月" seeds={aug}/>
+      <Group title="2026 年 7 月" seeds={jul}/>
+    </div>
+  );
+}
+function TransferRow({t,compact}){
+  const isUp=t.dir==='up';
+  return (
+    <div className="row-hover" style={{display:'flex',alignItems:'center',gap:13,padding:compact?'10px 14px':'12px 18px'}}>
+      <div style={{width:34,height:34,borderRadius:'50%',flexShrink:0,
+        background:t.status==='failed'?'var(--red-lt)':t.status==='instant'?'var(--green-lt)':(isUp?'var(--accent-lt)':'var(--purple-lt)'),
+        display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <I name={t.status==='failed'?'alert':t.status==='instant'?'check':(isUp?'upload':'download')}
+          size={15.5} color={t.status==='failed'?'var(--red)':t.status==='instant'?'var(--green)':isUp?'var(--accent)':'var(--purple)'} sw={1.9}/>
+      </div>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <span style={{fontSize:13.5,fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.name}</span>
+          {t.status==='instant'&&<Badge color="green">秒传完成</Badge>}
+          {t.status==='failed'&&<Badge color="red">失败</Badge>}
+          {t.status==='queued'&&<Badge color="gray">排队中</Badge>}
+          {t.status==='done'&&<Badge color="gray">已完成</Badge>}
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:12,marginTop:4,fontSize:11.5}}>
+          {t.status==='active' && <div style={{width:180}}><ProgressLine pct={t.pct} h={5}/></div>}
+          {t.status==='active'&&<span style={{color:'var(--text2)'}}>{t.speed} · {t.eta}</span>}
+          {t.status==='queued'&&<span style={{color:'var(--text3)'}}>等待前序任务完成</span>}
+          {t.status==='instant'&&<span style={{color:'var(--text3)'}}>服务器已存在相同文件，瞬间完成</span>}
+          {t.status==='failed'&&<span style={{color:'var(--red)'}}>网络中断 · {t.resume}</span>}
+          {t.status==='done'&&<span style={{color:'var(--text3)'}}>已完成 · {t.when}</span>}
+        </div>
+      </div>
+      <div style={{textAlign:'right',flexShrink:0}}>
+        <div style={{fontSize:12.5,fontWeight:600}}>
+          {t.status==='active'?`${t.done} / ${t.total}`:t.total}
+        </div>
+        {t.status==='active'&&<div style={{fontSize:11,color:'var(--accent)',fontWeight:700}}>{t.pct}%</div>}
+      </div>
+      {!compact && (
+        <div style={{display:'flex',gap:4,marginLeft:8}}>
+          {t.status==='active'&&<IconAct icon="pause" tip="暂停"/>}
+          {t.status==='failed'&&<IconAct icon="restore" tip="断点续传"/>}
+          {(t.status==='done'||t.status==='instant')&&<IconAct icon="folder" tip="打开所在位置"/>}
+        </div>
+      )}
+    </div>
+  );
+}
+function TransfersPage(){
+  const [tab,setTab]=useState('all');
+  const counts={
+    all:TRANSFERS.length,
+    active:TRANSFERS.filter(t=>['active','queued'].includes(t.status)).length,
+    done:TRANSFERS.filter(t=>['done','instant'].includes(t.status)).length,
+    failed:TRANSFERS.filter(t=>t.status==='failed').length,
+  };
+  const rows=TRANSFERS.filter(t=>
+    tab==='all'?true:
+    tab==='active'?['active','queued'].includes(t.status):
+    tab==='done'?['done','instant'].includes(t.status):t.status==='failed');
+  return (
+    <div className="fade-in" style={{maxWidth:1160,margin:'0 auto',padding:'20px 28px 60px'}}>
+      <PageHead title="传输管理" right={<PrimaryBtn icon="upload">新建上传</PrimaryBtn>}/>
+      <div style={{display:'flex',gap:12,marginBottom:20}}>
+        {[
+          ['上传速度','12.4 MB/s','upload','var(--accent)','var(--accent-lt)'],
+          ['下载速度','8.2 MB/s','download','var(--purple)','var(--purple-lt)'],
+          ['今日已完成','18 项','check','var(--green)','var(--green-lt)'],
+        ].map(card=>(
+          <div key={card[0]} style={{flex:1,background:'#fff',border:'1px solid var(--border)',borderRadius:12,
+            padding:'14px 18px',display:'flex',alignItems:'center',gap:13}}>
+            <div style={{width:38,height:38,borderRadius:10,background:card[4],display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <I name={card[2]} size={18} color={card[3]}/>
+            </div>
+            <div>
+              <div style={{fontSize:11.5,color:'var(--text3)'}}>{card[0]}</div>
+              <div style={{fontSize:16,fontWeight:700,letterSpacing:'-0.01em'}}>{card[1]}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <SegControl value={tab} onChange={setTab} options={[
+        ['all','全部',counts.all],['active','进行中',counts.active],
+        ['done','已完成',counts.done],['failed','失败',counts.failed]]}/>
+      <div key={tab} style={{background:'#fff',border:'1px solid var(--border)',borderRadius:12,padding:'4px 0'}}>
+        {rows.map((t,i)=>(
+          <div key={t.id} style={{borderBottom:i<rows.length-1?'1px solid #F1F2F4':'none'}}>
+            <TransferRow t={t}/>
+          </div>
+        ))}
+      </div>
+      <div style={{display:'flex',alignItems:'center',gap:8,marginTop:14,padding:'0 4px',fontSize:12,color:'var(--text3)'}}>
+        <I name="info" size={14}/> 支持断点续传：传输中断后自动保留进度，网络恢复后从断点继续，无需重新上传。
+      </div>
+    </div>
+  );
+}
+function FloatingTransfer({onClose,showToast}){
+  const [collapsed,setCollapsed]=useState(false);
+  return (
+    <div className="pop-in" style={{position:'absolute',right:22,bottom:22,width:330,background:'#fff',
+      borderRadius:14,border:'1px solid var(--border)',boxShadow:'0 12px 40px rgba(18,22,33,.16)',overflow:'hidden',zIndex:20}}>
+      <div style={{display:'flex',alignItems:'center',gap:9,padding:'12px 14px',
+        borderBottom:collapsed?'none':'1px solid var(--border)'}}>
+        <div style={{width:26,height:26,borderRadius:8,background:'var(--accent-lt)',display:'flex',
+          alignItems:'center',justifyContent:'center'}}>
+          <I name="transfer" size={14} color="var(--accent)"/>
+        </div>
+        <span style={{fontSize:13,fontWeight:600,flex:1}}>正在传输 3 项</span>
+        <span style={{fontSize:11.5,color:'var(--text3)'}}>12.4 MB/s</span>
+        <IconAct icon={collapsed?'chevronD':'minus'} tip="收起" onClick={()=>setCollapsed(!collapsed)}/>
+        <IconAct icon="close" tip="关闭" onClick={onClose}/>
+      </div>
+      {!collapsed && (
+        <div style={{padding:'6px 14px 12px'}}>
+          {[['发布会宣传片.mp4',71,'342 / 482 MB'],['客户素材包.rar',57,'89 / 156 MB'],['设计源文件合集.zip',0,'排队中']].map((row,i)=>(
+            <div key={i} style={{marginTop:10}}>
+              <div style={{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:5}}>
+                <span style={{fontWeight:500}}>{row[0]}</span>
+                <span style={{color:'var(--text3)'}}>{row[2]}</span>
+              </div>
+              <ProgressLine pct={row[1]} h={5}/>
+            </div>
+          ))}
+          <button onClick={()=>showToast('已打开传输管理')} style={{width:'100%',marginTop:12,height:30,
+            borderRadius:7,border:'1px solid var(--border2)',fontSize:12,fontWeight:500,color:'var(--text2)',
+            transition:'all .12s'}}
+            onMouseEnter={e=>e.currentTarget.style.background='var(--bg-app)'}
+            onMouseLeave={e=>e.currentTarget.style.background='#fff'}>
+            查看全部任务
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const PAGE_TITLES={files:'我的文件',recent:'最近',starred:'收藏',shared:'共享协作',trash:'回收站',photos:'相册',transfers:'传输管理'};
+function WebApp({page,onNav,docs,trash,actions,showToast}){
+  const [floatOpen,setFloatOpen]=useState(true);
+  return (
+    <div style={{flex:1,display:'flex',minWidth:0,background:'#fff',position:'relative',overflow:'hidden'}}>
+      <Sidebar page={page} onNav={id=>onNav('web',id)}/>
+      <div style={{flex:1,minWidth:0,display:'flex',flexDirection:'column'}}>
+        <TopBar title={PAGE_TITLES[page]}/>
+        <div className="app-scroll" style={{flex:1,overflow:'auto',background:'var(--bg-app)'}}>
+          {page==='files' && <FilesPage docs={docs} showToast={showToast} actions={actions}/>}
+          {page==='recent' && <RecentPage/>}
+          {page==='starred' && <StarredPage docs={docs} actions={actions} showToast={showToast}/>}
+          {page==='shared' && <SharePage showToast={showToast}/>}
+          {page==='trash' && <TrashPage trash={trash} actions={actions} showToast={showToast}/>}
+          {page==='photos' && <PhotosPage/>}
+          {page==='transfers' && <TransfersPage/>}
+        </div>
+      </div>
+      {page==='files' && floatOpen && <FloatingTransfer onClose={()=>setFloatOpen(false)} showToast={showToast}/>}
+    </div>
+  );
+}
+function StatusBar(){
+  return (
+    <div style={{position:'absolute',top:0,left:0,right:0,height:54,zIndex:40,
+      display:'flex',alignItems:'flex-end',justifyContent:'space-between',padding:'0 30px 8px',pointerEvents:'none'}}>
+      <span style={{fontSize:15,fontWeight:700,letterSpacing:'-0.01em'}}>9:41</span>
+      <div style={{display:'flex',alignItems:'center',gap:6}}>
+        <svg width="18" height="11" viewBox="0 0 18 11">
+          <rect x="0" y="7" width="3" height="4" rx="1" fill="#000"/>
+          <rect x="5" y="5" width="3" height="6" rx="1" fill="#000"/>
+          <rect x="10" y="2.5" width="3" height="8.5" rx="1" fill="#000"/>
+          <rect x="15" y="0" width="3" height="11" rx="1" fill="#000" opacity=".35"/>
+        </svg>
+        <svg width="16" height="11" viewBox="0 0 16 11">
+          <path d="M8 10.5 5.6 8.1a3.5 3.5 0 0 1 4.8 0L8 10.5Z" fill="#000"/>
+          <path d="M3.7 6.2a6.4 6.4 0 0 1 8.6 0L10.9 7.7a4.3 4.3 0 0 0-5.8 0L3.7 6.2Z" fill="#000"/>
+          <path d="M1.6 4.1a9.5 9.5 0 0 1 12.8 0l-1.4 1.5a7.4 7.4 0 0 0-10 0L1.6 4.1Z" fill="#000"/>
+        </svg>
+        <svg width="25" height="12" viewBox="0 0 25 12">
+          <rect x="0.5" y="0.5" width="21" height="11" rx="3.2" stroke="#000" opacity=".35" fill="none"/>
+          <rect x="2" y="2" width="15" height="8" rx="1.8" fill="#000"/>
+          <path d="M23 4v4a2.1 2.1 0 0 0 0-4Z" fill="#000" opacity=".4"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+function PhoneFrame({children}){
+  return (
+    <div style={{width:411,borderRadius:57,background:'#101013',padding:9,position:'relative',
+      boxShadow:'0 34px 90px rgba(20,24,34,.4), 0 4px 16px rgba(20,24,34,.25), inset 0 0 0 2px #3B3C43'}}>
+      <div style={{width:393,height:852,borderRadius:48,overflow:'hidden',background:'var(--bg-app)',position:'relative'}}>
+        <div style={{position:'absolute',top:12,left:'50%',transform:'translateX(-50%)',width:122,height:35,
+          background:'#000',borderRadius:18,zIndex:50}}/>
+        <StatusBar/>
+        {children}
+        <div style={{position:'absolute',bottom:7,left:'50%',transform:'translateX(-50%)',width:134,height:5,
+          borderRadius:3,background:'rgba(0,0,0,.3)',zIndex:40}}/>
+      </div>
+    </div>
+  );
+}
+function MHeader({title,right}){
+  return (
+    <div style={{display:'flex',alignItems:'center',padding:'12px 20px 6px'}}>
+      <div style={{fontSize:26,fontWeight:700,letterSpacing:'-0.02em',flex:1}}>{title}</div>
+      {right}
+    </div>
+  );
+}
+function MIconBtn({icon,badge}){
+  return (
+    <button style={{position:'relative',width:38,height:38,borderRadius:'50%',background:'#fff',
+      border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',
+      color:'var(--text1)',boxShadow:'0 1px 2px rgba(18,22,33,.04)'}}>
+      <I name={icon} size={18}/>
+      {badge && (
+        <span style={{position:'absolute',top:-3,right:-3,minWidth:17,height:17,padding:'0 4px',
+          borderRadius:9,background:'var(--red)',color:'#fff',fontSize:10,fontWeight:700,
+          display:'flex',alignItems:'center',justifyContent:'center',border:'2px solid var(--bg-app)'}}>{badge}</span>
+      )}
+    </button>
+  );
+}
+function TabBar({page,onNav}){
+  const TABS=[
+    ['files','文件','folder'],['photos','相册','img'],['transfers','传输','transfer'],
+    ['shared','共享','users'],['mine','我的','user'],
+  ];
+  return (
+    <div style={{background:'rgba(255,255,255,.94)',borderTop:'1px solid var(--border)',
+      display:'flex',padding:'7px 6px 26px',flexShrink:0,zIndex:30}}>
+      {TABS.map(t=>{
+        const active=page===t[0];
+        return (
+          <button key={t[0]} onClick={()=>onNav('mobile',t[0])} style={{
+            flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'3px 0',
+            color:active?'var(--accent)':'var(--text3)',transition:'all .15s'}}>
+            <div style={{position:'relative'}}>
+              <I name={t[2]} size={23} sw={active?2:1.7}/>
+              {t[0]==='transfers'&&!active&&(
+                <span style={{position:'absolute',top:-3,right:-6,minWidth:15,height:15,padding:'0 3px',
+                  borderRadius:8,background:'var(--red)',color:'#fff',fontSize:9.5,fontWeight:700,
+                  display:'flex',alignItems:'center',justifyContent:'center'}}>2</span>
+              )}
+            </div>
+            <span style={{fontSize:10,fontWeight:active?600:500}}>{t[1]}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+function MFab(){
+  const [open,setOpen]=useState(false);
+  const acts=[['camera','拍照备份','var(--pink)'],['img','上传照片','var(--purple)'],['doc','上传文件','var(--accent)']];
+  return (
+    <div style={{position:'absolute',right:18,bottom:104,zIndex:30,display:'flex',flexDirection:'column',
+      alignItems:'flex-end',gap:10}}>
+      {open && acts.map((a,i)=>(
+        <button key={a[0]} className="pop-in" style={{animationDelay:(acts.length-i)*40+'ms',
+          display:'flex',alignItems:'center',gap:9,height:42,padding:'0 16px 0 14px',borderRadius:21,
+          background:'#fff',border:'1px solid var(--border)',boxShadow:'0 8px 26px rgba(18,22,33,.16)',
+          fontSize:13.5,fontWeight:600}}>
+          <I name={a[0]} size={17} color={a[2]}/>{a[1]}
+        </button>
+      ))}
+      <button onClick={()=>setOpen(!open)} style={{
+        width:56,height:56,borderRadius:'50%',background:'var(--accent)',color:'#fff',
+        display:'flex',alignItems:'center',justifyContent:'center',
+        boxShadow:'0 8px 24px rgba(62,99,221,.45), inset 0 1px 0 rgba(255,255,255,.2)',
+        transition:'transform .2s cubic-bezier(.34,1.56,.64,1)',
+        transform:open?'rotate(45deg)':'none'}}>
+        <I name="plus" size={24} sw={2.2}/>
+      </button>
+    </div>
+  );
+}
+function MFilesPage(){
+  const folders=[
+    ['项目资料',24,'今天 14:32'],['客户提案',8,'昨天 18:05'],['团建相册',128,'08-10'],
+  ];
+  const files=[
+    ['发布会宣传片.mp4','video','482 MB'],['Q3 预算表.xlsx','sheet','340 KB'],['会议纪要 0812.pdf','pdf','1.1 MB'],
+  ];
+  const chips=[['img','图片','var(--purple)'],['video','视频','var(--pink)'],['doc','文档','var(--accent)'],['audio','音乐','var(--cyan)'],['zip','压缩包','#A1662F']];
+  return (
+    <div className="fade-in">
+      <MHeader title="我的文件" right={<div style={{display:'flex',gap:10}}>
+        <MIconBtn icon="search"/><MIconBtn icon="transfer" badge="2"/>
+      </div>}/>
+      <div style={{margin:'8px 20px 0'}}>
+        <div style={{background:'linear-gradient(135deg,#EDF1FE,#F6F0FC)',borderRadius:16,padding:'14px 16px',
+          display:'flex',alignItems:'center',gap:14}}>
+          <Ring pct={36} size={62} sw={7}>
+            <span style={{fontSize:13,fontWeight:700}}>36%</span>
+          </Ring>
+          <div style={{flex:1}}>
+            <div style={{fontSize:14,fontWeight:700}}>存储空间</div>
+            <div style={{fontSize:11.5,color:'var(--text3)',marginTop:2}}>已用 46.5 GB，共 128 GB</div>
+            <button style={{marginTop:8,height:28,padding:'0 12px',borderRadius:14,background:'#fff',
+              fontSize:11.5,fontWeight:600,color:'var(--accent)',border:'1px solid var(--accent-lt2)'}}>升级扩容</button>
+          </div>
+        </div>
+      </div>
+      <div style={{display:'flex',gap:8,padding:'14px 20px 4px',overflowX:'auto'}}>
+        {chips.map(c=>(
+          <div key={c[1]} style={{display:'flex',alignItems:'center',gap:6,height:32,padding:'0 12px',
+            borderRadius:16,background:'#fff',border:'1px solid var(--border)',flexShrink:0}}>
+            <I name={c[0]} size={14} color={c[2]}/>
+            <span style={{fontSize:12.5,color:'var(--text2)'}}>{c[1]}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{padding:'10px 20px'}}>
+        <div style={{fontSize:12.5,color:'var(--text3)',marginBottom:8}}>我的文件</div>
+        <div style={{background:'#fff',borderRadius:14,border:'1px solid var(--border)',overflow:'hidden'}}>
+          {folders.map((f,i)=>(
+            <div key={f[0]} className="row-hover" style={{display:'flex',alignItems:'center',gap:12,
+              padding:'12px 14px',borderBottom:i<folders.length-1||files.length?'1px solid #F1F2F4':'none',cursor:'pointer'}}>
+              <TypeIcon type="folder" size={38} radius={10}/>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:14.5,fontWeight:600}}>{f[0]}</div>
+                <div style={{fontSize:11.5,color:'var(--text3)',marginTop:1}}>{f[1]} 个项目 · {f[2]}</div>
+              </div>
+              <I name="chevronR" size={15} color="var(--text3)"/>
+            </div>
+          ))}
+          {files.map((f,i)=>(
+            <div key={f[0]} className="row-hover" style={{display:'flex',alignItems:'center',gap:12,
+              padding:'12px 14px',cursor:'pointer',
+              borderBottom:i<files.length-1?'1px solid #F1F2F4':'none'}}>
+              <TypeIcon type={f[1]} size={38} radius={10}/>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:14.5,fontWeight:500}}>{f[0]}</div>
+                <div style={{fontSize:11.5,color:'var(--text3)',marginTop:1}}>{f[2]}</div>
+              </div>
+              <I name="more" size={16} color="var(--text3)"/>
+            </div>
+          ))}
+        </div>
+      </div>
+      <MFab/>
+    </div>
+  );
+}
+function MPhotosPage(){
+  const seeds=[0,1,2,3,4,5,6,7,8,9,10,11];
+  const jul=[24,25,26,27,28,29,30,31];
+  const Grid=({list})=>(
+    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:2}}>
+      {list.map((s,i)=>(
+        <div key={i} style={{position:'relative',aspectRatio:'1'}}>
+          <Photo seed={s}/>
+          {(s%5===2)&&(
+            <div style={{position:'absolute',right:5,top:5,width:18,height:18,borderRadius:'50%',
+              background:'rgba(0,0,0,.4)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <I name="play" size={8} color="#fff" filled/>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+  return (
+    <div className="fade-in">
+      <MHeader title="相册" right={<MIconBtn icon="check"/>}/>
+      <div style={{padding:'0 20px 10px',display:'flex',alignItems:'center',gap:8,
+        background:'var(--green-lt)',borderRadius:12,margin:'4px 20px 0',padding:'10px 14px'}}>
+        <I name="cloudDown" size={15} color="var(--green)"/>
+        <span style={{fontSize:12,color:'#1F6B45',flex:1}}>自动备份已开启 · 今日新增 42 张</span>
+        <Switch on={true}/>
+      </div>
+      <div style={{padding:'14px 20px 4px',fontSize:12.5,color:'var(--text3)'}}>
+        2,847 张照片 · 184 个视频
+      </div>
+      <div style={{padding:'0 20px'}}>
+        <div style={{fontSize:13.5,fontWeight:700,margin:'6px 0 8px'}}>2026 年 8 月</div>
+      </div>
+      <Grid list={seeds}/>
+      <div style={{padding:'16px 20px 6px'}}>
+        <div style={{fontSize:13.5,fontWeight:700,marginBottom:8}}>2026 年 7 月</div>
+      </div>
+      <div style={{paddingBottom:20}}><Grid list={jul}/></div>
+    </div>
+  );
+}
+function MTransfersPage({showToast}){
+  const active=TRANSFERS.filter(t=>['active','queued'].includes(t.status));
+  const others=TRANSFERS.filter(t=>!['active','queued'].includes(t.status));
+  return (
+    <div className="fade-in" style={{paddingBottom:16}}>
+      <MHeader title="传输" right={<MIconBtn icon="settings"/>}/>
+      <div style={{margin:'6px 20px 14px',background:'#fff',borderRadius:16,border:'1px solid var(--border)',
+        padding:16,display:'flex',alignItems:'center',gap:16}}>
+        <Ring pct={64} size={92} sw={9}>
+          <span style={{fontSize:17,fontWeight:700}}>64%</span>
+          <span style={{fontSize:9.5,color:'var(--text3)'}}>总体进度</span>
+        </Ring>
+        <div style={{flex:1}}>
+          <div style={{fontSize:14.5,fontWeight:700}}>正在传输 2 项</div>
+          <div style={{fontSize:11.5,color:'var(--text3)',marginTop:3}}>上传 12.4 MB/s · 下载 8.2 MB/s</div>
+          <div style={{display:'flex',gap:6,marginTop:9}}>
+            <Badge color="blue"><I name="upload" size={10}/>上传 1</Badge>
+            <Badge color="purple"><I name="download" size={10}/>下载 1</Badge>
+            <Badge color="gray">排队 1</Badge>
+          </div>
+        </div>
+      </div>
+      <div style={{padding:'0 20px'}}>
+        <div style={{fontSize:12.5,color:'var(--text3)',marginBottom:8}}>进行中</div>
+        <div style={{background:'#fff',borderRadius:14,border:'1px solid var(--border)',padding:'2px 0'}}>
+          {active.map(t=>(
+            <div key={t.id} onClick={()=>showToast('已打开传输管理')}>
+              <TransferRow t={t} compact/>
+            </div>
+          ))}
+        </div>
+        <div style={{fontSize:12.5,color:'var(--text3)',margin:'14px 0 8px'}}>最近完成</div>
+        <div style={{background:'#fff',borderRadius:14,border:'1px solid var(--border)',padding:'2px 0'}}>
+          {others.map(t=>(
+            <TransferRow key={t.id} t={t} compact/>
+          ))}
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:7,marginTop:12,padding:'0 2px',fontSize:11,color:'var(--text3)'}}>
+          <I name="info" size={12}/> 中断后自动保留进度，支持断点续传
+        </div>
+      </div>
+    </div>
+  );
+}
+function MSharePage({showToast}){
+  const [tab,setTab]=useState('out');
+  return (
+    <div className="fade-in">
+      <MHeader title="共享" right={<MIconBtn icon="plus"/>}/>
+      <div style={{margin:'4px 20px 16px',display:'flex',background:'#EFF0F2',borderRadius:11,padding:3}}>
+        {[['out','发出的共享'],['in','收到的共享']].map(o=>(
+          <button key={o[0]} onClick={()=>setTab(o[0])} style={{
+            flex:1,height:32,borderRadius:8.5,fontSize:13,
+            fontWeight:tab===o[0]?600:500,color:tab===o[0]?'var(--text1)':'var(--text3)',
+            background:tab===o[0]?'#fff':'transparent',
+            boxShadow:tab===o[0]?'0 1px 4px rgba(18,22,33,.1)':'none',transition:'all .15s'}}>{o[1]}</button>
+        ))}
+      </div>
+      <div style={{padding:'0 20px',display:'flex',flexDirection:'column',gap:10}}>
+        {tab==='out' ? SHARES_OUT.map(s=>(
+          <div key={s.id} style={{background:'#fff',borderRadius:14,border:'1px solid var(--border)',padding:'13px 14px'}}>
+            <div style={{display:'flex',alignItems:'center',gap:11}}>
+              <TypeIcon type={s.type} size={36} radius={10}/>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:14,fontWeight:600}}>{s.name}</div>
+                <div style={{fontSize:11.5,color:s.expired?'var(--red)':'var(--text3)',marginTop:2}}>
+                  {s.expired?'链接已过期':(s.views==='—'?'仅限受邀成员 · 永久有效':`${s.views}${s.expiry?` · ${s.expiry}`:' · 永久有效'}`)}
+                </div>
+              </div>
+              {s.members.length>0 && <AvatarStack names={s.members} labels={s.labels} size={22}/>}
+            </div>
+            <div style={{display:'flex',gap:8,marginTop:11}}>
+              <button onClick={()=>showToast('链接已复制')} style={{flex:1,height:30,borderRadius:8,
+                background:'var(--accent-lt)',color:'var(--accent)',fontSize:12,fontWeight:600,
+                display:'flex',alignItems:'center',justifyContent:'center',gap:5}}>
+                <I name="copy" size={12}/>复制链接
+              </button>
+              <button style={{width:52,height:30,borderRadius:8,border:'1px solid var(--border2)',
+                display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <I name="settings" size={13} color="var(--text2)"/>
+              </button>
+            </div>
+          </div>
+        )) : SHARES_IN.map(s=>(
+          <div key={s.id} className="row-hover" style={{display:'flex',alignItems:'center',gap:12,
+            background:'#fff',borderRadius:14,border:'1px solid var(--border)',padding:'13px 14px',cursor:'pointer'}}>
+            <Avatar name={s.owner} size={38}/>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:14,fontWeight:600}}>{s.name}</div>
+              <div style={{fontSize:11.5,color:'var(--text3)',marginTop:2}}>来自 {s.owner} · {s.time}</div>
+            </div>
+            <Badge color={s.perm==='可编辑'?'blue':'gray'}>{s.perm}</Badge>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+function MMinePage(){
+  const rows=[
+    ['cloudDown','离线缓存','已缓存 2.3 GB'],
+    ['monitor','设备管理','3 台设备在线'],
+    ['trash','回收站','4 个项目'],
+    ['shield','安全与隐私','双重验证已开启'],
+  ];
+  return (
+    <div className="fade-in" style={{paddingBottom:20}}>
+      <div style={{display:'flex',alignItems:'center',gap:14,padding:'14px 20px 18px'}}>
+        <Avatar name="林一舟" label="林" size={58}/>
+        <div style={{flex:1}}>
+          <div style={{display:'flex',alignItems:'center',gap:7}}>
+            <span style={{fontSize:19,fontWeight:700}}>林一舟</span>
+            <Badge color="orange"><I name="gem" size={11}/>Pro</Badge>
+          </div>
+          <div style={{fontSize:12,color:'var(--text3)',marginTop:2}}>lin.yz@nimbus.cloud</div>
+        </div>
+        <MIconBtn icon="bell" badge="3"/>
+      </div>
+      <div style={{margin:'0 20px 14px',background:'linear-gradient(135deg,#EAF0FE,#F3EDFC)',
+        borderRadius:18,padding:18}}>
+        <div style={{display:'flex',alignItems:'center',gap:18}}>
+          <Ring pct={36} size={104} sw={11}>
+            <span style={{fontSize:20,fontWeight:700,letterSpacing:'-0.02em'}}>46.5</span>
+            <span style={{fontSize:10.5,color:'var(--text3)'}}>GB 已用 / 128 GB</span>
+          </Ring>
+          <div style={{flex:1,display:'flex',flexDirection:'column',gap:8}}>
+            {[['照片','17.6 GB','var(--purple)'],['文档','10.2 GB','var(--accent)'],
+              ['视频','8.4 GB','var(--pink)'],['其他','10.3 GB','#C4C8CF']].map(row=>(
+              <div key={row[0]} style={{display:'flex',alignItems:'center',gap:7,fontSize:12}}>
+                <span style={{width:8,height:8,borderRadius:2.5,background:row[2]}}/>
+                <span style={{flex:1,color:'var(--text2)'}}>{row[0]}</span>
+                <span style={{fontWeight:600}}>{row[1]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <button style={{width:'100%',marginTop:14,height:34,borderRadius:10,background:'#fff',
+          fontSize:12.5,fontWeight:600,color:'var(--accent)',border:'1px solid #DCE4FA',
+          display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+          <I name="gem" size={14}/>升级到 2TB 超大空间
+        </button>
+      </div>
+      <div style={{margin:'0 20px',background:'#fff',borderRadius:16,border:'1px solid var(--border)',overflow:'hidden'}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,padding:'12px 16px',borderBottom:'1px solid #F1F2F4'}}>
+          <I name="cloudDown" size={16} color="var(--text2)"/>
+          <span style={{flex:1,fontSize:13.5,fontWeight:500}}>相册自动备份</span>
+          <Switch on={true}/>
+        </div>
+        {rows.map((r,i)=>(
+          <div key={r[0]} className="row-hover" style={{display:'flex',alignItems:'center',gap:8,
+            padding:'13px 16px',cursor:'pointer',
+            borderBottom:i<rows.length-1?'1px solid #F1F2F4':'none'}}>
+            <I name={r[0]} size={16} color="var(--text2)"/>
+            <span style={{flex:1,fontSize:13.5,fontWeight:500}}>{r[1]}</span>
+            <span style={{fontSize:11.5,color:'var(--text3)'}}>{r[2]}</span>
+            <I name="chevronR" size={14} color="var(--text3)"/>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+function MobileApp({page,onNav,showToast}){
+  return (
+    <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',paddingTop:54}}>
+      <div className="app-scroll" style={{flex:1,overflow:'auto',position:'relative'}}>
+        <div key={page} style={{minHeight:'100%'}}>
+          {page==='files' && <MFilesPage/>}
+          {page==='photos' && <MPhotosPage/>}
+          {page==='transfers' && <MTransfersPage showToast={showToast}/>}
+          {page==='shared' && <MSharePage showToast={showToast}/>}
+          {page==='mine' && <MMinePage/>}
+        </div>
+      </div>
+      <TabBar page={page} onNav={onNav}/>
+    </div>
+  );
+}
+
+/* ================= Prototype shell ================= */
+const WEB_PAGES=[['files','我的文件'],['recent','最近'],['starred','收藏'],['shared','共享协作'],['trash','回收站'],['photos','相册'],['transfers','传输管理']];
+const MOBILE_PAGES=[['files','文件'],['photos','相册'],['transfers','传输'],['shared','共享'],['mine','我的']];
+function parseHash(){
+  const h=location.hash.replace(/^#\/?/,'');
+  const parts=h.split('/');
+  if(parts[0]==='web'&&WEB_PAGES.some(p=>p[0]===parts[1]))return{platform:'web',page:parts[1]};
+  if(parts[0]==='mobile'&&MOBILE_PAGES.some(p=>p[0]===parts[1]))return{platform:'mobile',page:parts[1]};
+  return null;
+}
+function ProtoNav({route,nav}){
+  const isWeb=route.platform==='web';
+  const pages=isWeb?WEB_PAGES:MOBILE_PAGES;
+  return (
+    <div style={{position:'sticky',top:0,zIndex:100,background:'rgba(255,255,255,.9)',
+      backdropFilter:'blur(14px)',borderBottom:'1px solid var(--border)'}}>
+      <div style={{maxWidth:1480,margin:'0 auto',padding:'0 24px'}}>
+        <div style={{height:54,display:'flex',alignItems:'center',gap:12}}>
+          <Logo size={28}/>
+          <div>
+            <div style={{fontSize:14.5,fontWeight:700,lineHeight:1.2}}>Nimbus 云盘</div>
+            <div style={{fontSize:10.5,color:'var(--text3)',letterSpacing:'.02em'}}>产品界面原型 v1.0</div>
+          </div>
+          <div style={{marginLeft:18,display:'flex',background:'#EFF0F2',borderRadius:10,padding:3,gap:2}}>
+            {[['web','网页端','monitor'],['mobile','移动 App','phoneDev']].map(p=>(
+              <button key={p[0]} onClick={()=>nav(p[0],pages[0][0])} style={{
+                display:'flex',alignItems:'center',gap:7,height:32,padding:'0 14px',borderRadius:7.5,
+                fontSize:13,fontWeight:route.platform===p[0]?600:500,
+                color:route.platform===p[0]?'var(--text1)':'var(--text3)',
+                background:route.platform===p[0]?'#fff':'transparent',
+                boxShadow:route.platform===p[0]?'0 1px 4px rgba(18,22,33,.12)':'none',
+                transition:'all .15s'}}>
+                <I name={p[2]} size={15}/>{p[1]}
+              </button>
+            ))}
+          </div>
+          <div style={{flex:1}}/>
+          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11.5,color:'var(--text3)'}}>
+            <I name="info" size={13}/> 点击页面元素可交互 · 支持多选、删除、恢复等操作
+          </div>
+        </div>
+        <div style={{display:'flex',gap:6,padding:'2px 0 10px',overflowX:'auto'}}>
+          {pages.map(p=>(
+            <button key={p[0]} onClick={()=>nav(route.platform,p[0])} style={{
+              height:30,padding:'0 13px',borderRadius:999,fontSize:12.5,whiteSpace:'nowrap',
+              fontWeight:route.page===p[0]?600:500,
+              color:route.page===p[0]?'#fff':'var(--text2)',
+              background:route.page===p[0]?'#23272E':'transparent',
+              transition:'all .15s'}}
+              onMouseEnter={e=>{if(route.page!==p[0])e.currentTarget.style.background='#ECEDEF'}}
+              onMouseLeave={e=>{if(route.page!==p[0])e.currentTarget.style.background='transparent'}}>
+              {p[1]}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+function Toast({msg}){
+  return (
+    <div className="pop-in" style={{position:'absolute',bottom:26,left:'50%',transform:'translateX(-50%)',
+      background:'#23272E',color:'#fff',fontSize:13,fontWeight:500,padding:'10px 18px',borderRadius:10,
+      boxShadow:'0 8px 30px rgba(18,22,33,.35)',zIndex:200,display:'flex',alignItems:'center',gap:8,
+      pointerEvents:'none',whiteSpace:'nowrap'}}>
+      <I name="check" size={14} color="#7BC89A" sw={2.2}/>{msg}
+    </div>
+  );
+}
+function App(){
+  const [route,setRoute]=useState(()=>parseHash()||{platform:'web',page:'files'});
+  useEffect(()=>{
+    const onHash=()=>{const r=parseHash();if(r)setRoute(r);};
+    window.addEventListener('hashchange',onHash);
+    return ()=>window.removeEventListener('hashchange',onHash);
+  },[]);
+  const nav=(platform,page)=>{location.hash=`#/${platform}/${page}`;};
+  const [docs,setDocs]=useState(INITIAL_DOCS);
+  const [toast,setToast]=useState(null);
+  const tRef=useRef(null);
+  const showToast=msg=>{
+    setToast(msg);
+    clearTimeout(tRef.current);
+    tRef.current=setTimeout(()=>setToast(null),2200);
+  };
+  const trash=TRASH_SEED.concat(docs.filter(d=>d.deleted).map(d=>({
+    id:d.id,name:d.name,type:d.type,orig:'我的文件',
+    deleted:'刚刚',days:d.days||30,
+  })));
+  const actions={
+    star:id=>setDocs(p=>p.map(d=>d.id===id?{...d,star:!d.star}:d)),
+    delete:ids=>setDocs(p=>p.map(d=>ids.includes(d.id)?{...d,deleted:true}:d)),
+    restore:id=>setDocs(p=>p.map(d=>d.id===id?{...d,deleted:false}:d)),
+    purge:id=>setDocs(p=>p.filter(d=>d.id!==id)),
+  };
+  const isWeb=route.platform==='web';
+  return (
+    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+      <ProtoNav route={route} nav={nav}/>
+      {isWeb ? (
+        <div style={{flex:1,padding:'18px 24px 26px',minHeight:0}}>
+          <div style={{maxWidth:1480,margin:'0 auto',height:'calc(100vh - 168px)',minHeight:640,
+            border:'1px solid var(--border)',borderRadius:16,overflow:'hidden',
+            boxShadow:'0 20px 60px rgba(18,22,33,.09)',background:'#fff',display:'flex',position:'relative'}}>
+            <WebApp page={route.page} onNav={nav} docs={docs} trash={trash} actions={actions} showToast={showToast}/>
+            {toast && <Toast msg={toast}/>}
+          </div>
+        </div>
+      ) : (
+        <div className="dots-bg" style={{flex:1,padding:'36px 24px 60px'}}>
+          <div style={{display:'flex',justifyContent:'center'}}>
+            <PhoneFrame>
+              <MobileApp page={route.page} onNav={nav} showToast={showToast}/>
+            </PhoneFrame>
+          </div>
+          <div style={{textAlign:'center',marginTop:26,fontSize:12,color:'var(--text3)'}}>
+            iPhone 15 Pro · 393 × 852 · 底部 Tab 可切换页面
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

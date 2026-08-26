@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.nimbus</groupId>
+        <artifactId>nimbus-cloud</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>nimbus-framework</artifactId>
+    <packaging>pom</packaging>
+    <description>可装卸组件族: 业务模块按需引入, 去依赖即卸载</description>
+
+    <modules>
+        <module>nimbus-json</module>
+        <module>nimbus-mybatis</module>
+        <module>nimbus-redisson</module>
+        <module>nimbus-security</module>
+        <module>nimbus-opendoc</module>
+        <module>nimbus-log</module>
+        <module>nimbus-storage</module>
+    </modules>
+</project>

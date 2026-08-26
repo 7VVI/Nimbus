@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.nimbus</groupId>
+        <artifactId>nimbus-module</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>nimbus-system</artifactId>
+    <description>业务模块: 用户账号/认证/配额/审计日志(不可独立启动, 由 server 模块装配)</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.nimbus</groupId>
+            <artifactId>nimbus-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbus</groupId>
+            <artifactId>nimbus-mybatis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbus</groupId>
+            <artifactId>nimbus-redisson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbus</groupId>
+            <artifactId>nimbus-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbus</groupId>
+            <artifactId>nimbus-log</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

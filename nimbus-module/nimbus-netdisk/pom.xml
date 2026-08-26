@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.nimbus</groupId>
+        <artifactId>nimbus-module</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>nimbus-netdisk</artifactId>
+    <description>业务模块: 网盘核心业务(文件夹/文件/上传/下载/分享/回收站/搜索/预览/版本)(不可独立启动)</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.nimbus</groupId>
+            <artifactId>nimbus-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbus</groupId>
+            <artifactId>nimbus-mybatis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbus</groupId>
+            <artifactId>nimbus-redisson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbus</groupId>
+            <artifactId>nimbus-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbus</groupId>
+            <artifactId>nimbus-log</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbus</groupId>
+            <artifactId>nimbus-storage</artifactId>
+        </dependency>
+        <!-- 配额服务跨模块复用 -->
+        <dependency>
+            <groupId>com.nimbus</groupId>
+            <artifactId>nimbus-system</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
