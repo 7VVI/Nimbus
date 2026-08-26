@@ -21,4 +21,10 @@ public interface QuotaService {
 
     /** 用量增减(delta 可为负), 结果不小于 0 */
     void changeUsage(Long userId, long delta);
+
+    /**
+     * 升级扩容: 将总容量调整为 newTotalSize
+     * 仅允许不小于当前总容量(扩容只增不减), 返回更新后的配额
+     */
+    QuotaVO upgrade(Long userId, long newTotalSize);
 }

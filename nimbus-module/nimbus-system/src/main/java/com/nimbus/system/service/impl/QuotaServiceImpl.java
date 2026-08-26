@@ -54,7 +54,7 @@ public class QuotaServiceImpl implements QuotaService {
         }
     }
 
-    @Override
+        @Override
     @Transactional(rollbackFor = Exception.class)
     public void changeUsage(Long userId, long delta) {
         NimbusQuota quota = getQuotaEntity(userId);
@@ -64,6 +64,25 @@ public class QuotaServiceImpl implements QuotaService {
         update.setUsedSize(usedSize);
         nimbusQuotaMapper.updateById(update);
         clearCache(userId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public QuotaVO upgrade(Long userId, long newTotalSize) {
+        NimbusQuota quota = getQuotaEntity(userId);
+        // 扩容只增不减, 且不能低于已用空间
+        if (newTotalSize < quota.getTotalSize()) {
+            throw new BusinessException(ErrorCode.BUSINESS_ERROR, "新容量不能小于当前总容量");
+        }
+        if (newTotalSize < quota.getUsedSize()) {
+            throw new BusinessException(ErrorCode.QUOTA_EXCEEDED, "新容量不能低于已用空间");
+        }
+        NimbusQuota update = new NimbusQuota();
+        update.setId(quota.getId());
+        update.setTotalSize(newTotalSize);
+        nimbusQuotaMapper.updateById(update);
+        clearCache(userId);
+        return getQuota(userId);
     }
 
     /** 读取配额, 缓存未命中回源 DB */

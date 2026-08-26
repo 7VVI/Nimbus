@@ -1,10 +1,11 @@
 import { App, Avatar, Button, Card, Descriptions, Progress, Space, Tag } from 'antd';
-import { useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { quotaApi } from '../api';
 import type { QuotaVO } from '../api/types';
 import { useAuth } from '../store/auth';
 import { formatSize } from '../store/uploader';
+import { UpgradeContext } from '../components/AppLayout';
 import { LogoutOutlined, RocketOutlined, UserOutlined } from '@ant-design/icons';
 
 /** 设置: 账户信息 + 存储空间 + 退出登录 */
@@ -13,10 +14,15 @@ export default function Settings() {
   const navigate = useNavigate();
   const [quota, setQuota] = useState<QuotaVO | null>(null);
   const { message } = App.useApp();
+  const { openUpgrade } = useContext(UpgradeContext);
 
-  useEffect(() => {
+  const loadQuota = useCallback(() => {
     quotaApi.get().then(setQuota).catch(() => setQuota(null));
   }, []);
+
+  useEffect(() => {
+    loadQuota();
+  }, [loadQuota]);
 
   const handleLogout = async () => {
     await logout();
@@ -86,7 +92,7 @@ export default function Settings() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 14 }}>
             <Space>
-              <Button type="primary" icon={<RocketOutlined />} onClick={() => message.info('扩容功能升级中, 敬请期待')}>
+              <Button type="primary" icon={<RocketOutlined />} onClick={openUpgrade}>
                 升级扩容
               </Button>
             </Space>

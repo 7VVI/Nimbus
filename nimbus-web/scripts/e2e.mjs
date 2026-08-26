@@ -515,6 +515,30 @@ if (targetDir) {
   check('打开所在位置-定位到云盘目录', crumbText.includes('e2e-测试目录'), crumbText.slice(0, 80));
 }
 
+// ---------- 16. 升级扩容(自定义 9999GB, 稳定幂等) ----------
+await page.goto(`${BASE}/settings`, { waitUntil: 'domcontentloaded' });
+await sleep(1000);
+await clickByText('升级扩容');
+await page.waitForSelector('.ant-modal .ant-input-number-input', { timeout: 5000 });
+await page.type('.ant-modal .ant-input-number-input', '9999');
+await clickByText('确认升级');
+await sleep(1500);
+const upgradedQuota = await pageFetch('/api/quota', { headers: { Authorization: await page.evaluate(() => localStorage.getItem('nimbus_token')) } });
+const expectBytes = 9999 * 1024 * 1024 * 1024;
+check('升级扩容生效(总容量=9999GB)', Number(upgradedQuota?.data?.totalSize) === expectBytes,
+  `totalSize=${upgradedQuota?.data?.totalSize}`);
+// 降级应被拒绝
+const downgraded = await page.evaluate(async (bytes) => {
+  const tk = localStorage.getItem('nimbus_token');
+  const resp = await fetch('/api/quota/upgrade', {
+    method: 'PUT',
+    headers: { Authorization: tk, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ totalSize: bytes }),
+  });
+  return (await resp.json()).code;
+}, 128 * 1024 * 1024 * 1024);
+check('降级被拒绝(code=1000)', downgraded === 1000, `code=${downgraded}`);
+
 console.log(`\ne2e result: PASS=${pass} FAIL=${fail}`);
 if (errors.length) {
   console.log('page errors:', errors.slice(0, 5));

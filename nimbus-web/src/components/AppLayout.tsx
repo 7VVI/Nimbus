@@ -1,5 +1,5 @@
 import { Layout, Menu, Avatar, Dropdown, Input, Button, Badge, Progress, App as AntdApp } from 'antd';
-import { createContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   DeleteOutlined,
@@ -16,6 +16,7 @@ import {
 } from '@ant-design/icons';
 import { quotaApi } from '../api';
 import type { QuotaVO } from '../api/types';
+import { UpgradeModal } from './UpgradeModal';
 import { useAuth } from '../store/auth';
 import { uploader, formatSize } from '../store/uploader';
 
@@ -29,6 +30,11 @@ export const CurrentFolderContext = createContext<{ folderId: string; setFolderI
 export const SearchBarContext = createContext<{ keyword: string; setKeyword: (k: string) => void }>({
   keyword: '',
   setKeyword: () => {},
+});
+
+/** 升级扩容弹窗上下文: 侧边栏与设置页共用入口 */
+export const UpgradeContext = createContext<{ openUpgrade: () => void }>({
+  openUpgrade: () => {},
 });
 
 const MENUS = [
@@ -50,7 +56,18 @@ export function AppLayout() {
   /** 顶栏搜索框受控关键字 */
   const [searchKeyword, setSearchKeyword] = useState('');
   const [uploadCount, setUploadCount] = useState(0);
+  /** 升级扩容弹窗开关(侧边栏与设置页共用) */
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+
+  const refreshQuota = useCallback(() => {
+    quotaApi
+      .get()
+      .then(setQuota)
+      .catch(() => setQuota(null));
+  }, []);
+
+  const openUpgrade = useCallback(() => setUpgradeOpen(true), []);
 
   const selectedKey = useMemo(() => {
     const match = MENUS.find((m) => location.pathname.startsWith(m.key));
@@ -58,10 +75,8 @@ export function AppLayout() {
   }, [location.pathname]);
 
   useEffect(() => {
-    quotaApi.get()
-      .then(setQuota)
-      .catch(() => setQuota(null));
-  }, [location.pathname]);
+    refreshQuota();
+  }, [location.pathname, refreshQuota]);
 
   useEffect(() => {
     const refresh = () => {
@@ -90,6 +105,7 @@ export function AppLayout() {
   return (
     <CurrentFolderContext.Provider value={{ folderId, setFolderId }}>
       <SearchBarContext.Provider value={{ keyword: searchKeyword, setKeyword: setSearchKeyword }}>
+      <UpgradeContext.Provider value={{ openUpgrade }}>
         <Layout style={{ height: '100vh', overflow: 'hidden' }}>
         <Layout.Sider width={220} theme="light" style={{ borderRight: '1px solid var(--border)', background: '#fff' }}>
           <div
@@ -159,7 +175,7 @@ export function AppLayout() {
                   padding: '3px 0',
                   cursor: 'pointer',
                 }}
-                onClick={() => navigate('/settings')}
+                onClick={openUpgrade}
               >
                 升级扩容
               </div>
@@ -234,8 +250,14 @@ export function AppLayout() {
             <Outlet />
           </Layout.Content>
         </Layout>
-      </Layout>
+        </Layout>
+      </UpgradeContext.Provider>
       </SearchBarContext.Provider>
+      <UpgradeModal
+        open={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+        onUpgraded={() => refreshQuota()}
+      />
     </CurrentFolderContext.Provider>
   );
 }

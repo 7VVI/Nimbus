@@ -30,6 +30,8 @@ export const authApi = {
 /** 配额 */
 export const quotaApi = {
   get: () => api.get<QuotaVO>('/quota'),
+  /** 升级扩容: 调整总容量(只增不减) */
+  upgrade: (totalSize: number) => api.put<QuotaVO>('/quota/upgrade', { totalSize }),
 };
 
 /** 文件夹 */
