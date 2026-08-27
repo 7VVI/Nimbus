@@ -28,7 +28,7 @@ export default function DownloadNotifier() {
         notification.open({
           message: task.fileName,
           description: `${formatSize(task.fileSize ?? task.loaded)} · 下载完成`,
-          placement: 'bottomRight',
+          placement: 'bottomLeft',
           duration: 6,
           onClick: open,
           btn: (

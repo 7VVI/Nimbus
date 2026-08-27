@@ -17,6 +17,7 @@ import {
 import { quotaApi } from '../api';
 import type { QuotaVO } from '../api/types';
 import { UpgradeModal } from './UpgradeModal';
+import FloatingTransfer from './FloatingTransfer';
 import { useAuth } from '../store/auth';
 import { uploader, formatSize } from '../store/uploader';
 
@@ -258,6 +259,8 @@ export function AppLayout() {
         onClose={() => setUpgradeOpen(false)}
         onUpgraded={() => refreshQuota()}
       />
+      {/* 右下角悬浮传输面板(下载/上传实时进度, 不自动关闭) */}
+      <FloatingTransfer />
     </CurrentFolderContext.Provider>
   );
 }

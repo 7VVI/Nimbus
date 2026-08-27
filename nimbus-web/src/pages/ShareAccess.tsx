@@ -6,6 +6,7 @@ import { shareApi } from '../api';
 import type { NimbusShare, ShareItemVO } from '../api/types';
 import { FileIcon } from '../components/FileIcon';
 import { MoveModal } from '../components/MoveModal';
+import FloatingTransfer from '../components/FloatingTransfer';
 import { formatSize } from '../store/uploader';
 import { enqueueShareDownload } from '../store/downloader';
 import dayjs from 'dayjs';
@@ -332,6 +333,8 @@ export default function ShareAccess() {
         }}
         onCancel={() => setSaveOpen(false)}
       />
+      {/* 右下角悬浮传输面板(分享下载实时进度) */}
+      <FloatingTransfer />
     </div>
   );
 }

@@ -162,7 +162,22 @@ await sleep(300);
 await rowAction('e2e-upload.txt', `row.querySelector('.ant-tag').click()`);
 await sleep(700);
 await page.evaluate(() => [...document.querySelectorAll('.ant-dropdown-menu-item')].find((i) => i.textContent?.includes('下载'))?.click());
-await sleep(800);
+// 右下角悬浮传输面板: 立即轮询(小文件本地下载毫秒级完成, 面板出现后随完成隐藏)
+let panelSeen = false;
+let panelText = '';
+for (let i = 0; i < 50; i++) {
+  const st = await page.evaluate(() => {
+    const panel = document.querySelector('.nimbus-floating-transfer');
+    return { exists: panel !== null, text: panel?.textContent ?? '' };
+  });
+  if (st.exists) {
+    panelSeen = true;
+    panelText = st.text;
+    break;
+  }
+  await sleep(100);
+}
+check('悬浮传输面板出现(下载中)', panelSeen === true && panelText.includes('e2e-upload.txt') && panelText.includes('正在传输'), panelText.slice(0, 120));
 // 通过顶栏按钮 SPA 导航进入传输页(整页刷新会清空内存中的任务队列)
 await clickByText('传输列表');
 await page.waitForFunction(() => location.pathname === '/transfers', { timeout: 5000 });
@@ -180,6 +195,9 @@ for (let i = 0; i < 20; i++) {
   await sleep(500);
 }
 check('下载任务完成', dlDone);
+// 完成后悬浮面板应自动消失(无活跃任务)
+await sleep(600);
+check('任务完成后悬浮面板消失', (await page.$('.nimbus-floating-transfer')) === null);
 // 右下角下载完成通知(可能有多条, 找目标文件的)
 const notif = await page.evaluate(() => {
   const notices = [...document.querySelectorAll('.ant-notification-notice')];
