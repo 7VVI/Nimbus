@@ -29,4 +29,5 @@ Thumbs.db
 
 # ---- 测试临时产物 ----
 nimbus-web/scripts/*.png
-nimbus-web/scripts/e2e-upload.txtnimbus-web/scripts/note-md.tmp.md
+nimbus-web/scripts/e2e-upload.txt
+nimbus-web/scripts/note-md.tmp.md
