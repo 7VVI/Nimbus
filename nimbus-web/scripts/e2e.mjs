@@ -141,11 +141,11 @@ if (fileInput) {
 // ---------- 6. 预览抽屉 ----------
 await rowAction('e2e-upload.txt', `row.querySelector('td:nth-child(2) [class*="ant-space"]')?.click()`);
 await sleep(1000);
-const drawerText = await text('.ant-drawer');
+const drawerText = await text('.ant-modal');
 check('预览抽屉打开', drawerText.includes('e2e-upload.txt'));
 check('预览抽屉-版本信息', drawerText.includes('1 版'), drawerText.slice(0, 80));
 check('预览-文本内容渲染', (await page.$('.nimbus-preview-text')) !== null);
-await page.evaluate(() => document.querySelector('.ant-drawer-close')?.click());
+await page.evaluate(() => document.querySelector('.ant-modal-close')?.click());
 await sleep(500);
 
 // ---------- 6.1 多格式预览: Markdown / Excel ----------
@@ -165,7 +165,7 @@ const mdState = await page.evaluate(() => ({
 }));
 check('预览-Markdown 标题渲染', mdState.h1 === 1 && mdState.h1Text.includes('Nimbus 预览测试标题'), JSON.stringify(mdState));
 check('预览-Markdown 列表渲染', mdState.li >= 2, `li=${mdState.li}`);
-await page.evaluate(() => document.querySelector('.ant-drawer-close')?.click());
+await page.evaluate(() => document.querySelector('.ant-modal-close')?.click());
 await sleep(500);
 // Excel(若存在测试 xlsx)
 const hasXlsx = await page.evaluate(() =>
@@ -178,7 +178,7 @@ if (hasXlsx) {
     rows: document.querySelectorAll('.nimbus-preview-sheet tr').length,
   }));
   check('预览-Excel 表格渲染', sheetState.table >= 1 && sheetState.rows >= 1, JSON.stringify(sheetState));
-  await page.evaluate(() => document.querySelector('.ant-drawer-close')?.click());
+  await page.evaluate(() => document.querySelector('.ant-modal-close')?.click());
   await sleep(500);
 }
 

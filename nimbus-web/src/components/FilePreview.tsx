@@ -45,7 +45,7 @@ export function FilePreview({ file }: Props) {
   if (categoryOf(ext) === 'VIDEO') {
     return (
       <div style={{ textAlign: 'center' }}>
-        <video src={previewApi.contentUrl(file.id)} controls style={{ width: '100%', maxHeight: 360, borderRadius: 8 }} />
+        <video src={previewApi.contentUrl(file.id)} controls style={{ width: '100%', maxHeight: 520, borderRadius: 8 }} />
       </div>
     );
   }
@@ -135,7 +135,7 @@ function ImagePreview({ file }: { file: NimbusFile }) {
   if (!url) return <Loading text="加载图片…" />;
   return (
     <div style={{ textAlign: 'center' }}>
-      <img src={url} alt={file.fileName} style={{ maxWidth: '100%', maxHeight: 340, borderRadius: 8 }} />
+      <img src={url} alt={file.fileName} style={{ maxWidth: '100%', maxHeight: 560, borderRadius: 8 }} />
     </div>
   );
 }
@@ -199,7 +199,7 @@ function PdfPreview({ file }: { file: NimbusFile }) {
     <iframe
       src={url}
       title={file.fileName}
-      style={{ width: '100%', height: 420, border: '1px solid var(--border)', borderRadius: 8, background: '#fff' }}
+      style={{ width: '100%', height: '68vh', border: '1px solid var(--border)', borderRadius: 8, background: '#fff' }}
     />
   );
 }

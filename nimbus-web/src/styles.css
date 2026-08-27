@@ -106,7 +106,7 @@ body {
   background: #f7f8fa;
   padding: 12px;
   border-radius: 8px;
-  max-height: 360px;
+  max-height: 60vh;
   overflow: auto;
   font-size: 12.5px;
   font-family: 'JetBrains Mono', Consolas, Menlo, monospace;
@@ -115,7 +115,7 @@ body {
   margin: 0;
 }
 .nimbus-preview-md {
-  max-height: 380px;
+  max-height: 62vh;
   overflow: auto;
   font-size: 13.5px;
   line-height: 1.7;
@@ -172,7 +172,7 @@ body {
   max-width: 100%;
 }
 .nimbus-preview-docx {
-  max-height: 430px;
+  max-height: 64vh;
   overflow: auto;
   background: #fff;
 }
@@ -186,7 +186,7 @@ body {
   padding: 20px 24px;
 }
 .nimbus-preview-sheet {
-  max-height: 400px;
+  max-height: 64vh;
   overflow: auto;
   border: 1px solid var(--border);
   border-radius: 8px;

@@ -1,4 +1,4 @@
-import { Alert, Button, Descriptions, Divider, Drawer, List, Modal, Space, Spin, Tag, Typography } from 'antd';
+import { Alert, Button, Descriptions, Divider, List, Modal, Space, Spin, Tag, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import { fileApi, previewApi } from '../api';
 import type { NimbusFile, NimbusFileVersion, PreviewVO } from '../api/types';
@@ -58,19 +58,22 @@ export function PreviewModal({ file, onClose, onShare, onChanged }: Props) {
   };
 
   return (
-    <Drawer
-      title={file ? file.fileName : ''}
-      width={420}
-      open={file !== null}
-      onClose={onClose}
-      extra={
-        file ? (
-          <Space>
-            {file.isStarred === 1 && <Tag color="gold">已收藏</Tag>}
-            <Tag>{file.version} 版</Tag>
-          </Space>
-        ) : undefined
+    <Modal
+      title={
+        <Space>
+          <span>{file?.fileName}</span>
+          {file?.isStarred === 1 && <Tag color="gold">已收藏</Tag>}
+          {file && <Tag>{file.version} 版</Tag>}
+        </Space>
       }
+      open={file !== null}
+      onCancel={onClose}
+      footer={null}
+      width={960}
+      centered
+      destroyOnHidden
+      style={{ maxWidth: '94vw' }}
+      styles={{ body: { maxHeight: '74vh', overflow: 'auto', paddingTop: 12 } }}
     >
       {file && (
         <Spin spinning={loading}>
@@ -132,6 +135,6 @@ export function PreviewModal({ file, onClose, onShare, onChanged }: Props) {
           )}
         </Spin>
       )}
-    </Drawer>
+    </Modal>
   );
 }
