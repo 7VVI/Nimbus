@@ -1,9 +1,9 @@
 import { Alert, Button, Descriptions, Divider, Drawer, List, Modal, Space, Spin, Tag, Typography } from 'antd';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { fileApi, previewApi } from '../api';
-import { download } from '../api/client';
 import type { NimbusFile, NimbusFileVersion, PreviewVO } from '../api/types';
-import { FileIcon, categoryOf } from './FileIcon';
+import { FileIcon } from './FileIcon';
+import { FilePreview } from './FilePreview';
 import { formatSize } from '../store/uploader';
 import { enqueueFileDownload } from '../store/downloader';
 import dayjs from 'dayjs';
@@ -17,13 +17,8 @@ interface Props {
   onChanged?: () => void;
 }
 
-/** 文本类: 直接拉取内容展示 */
-const TEXT_EXTS = new Set(['txt', 'md', 'json', 'xml', 'csv', 'js', 'ts', 'css', 'html', 'yml', 'yaml', 'sql', 'sh', 'log']);
-
 export function PreviewModal({ file, onClose, onShare, onChanged }: Props) {
   const [preview, setPreview] = useState<PreviewVO | null>(null);
-  const [text, setText] = useState<string | null>(null);
-  const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [versions, setVersions] = useState<NimbusFileVersion[]>([]);
   const [loading, setLoading] = useState(false);
   const [rollbacking, setRollbacking] = useState(false);
@@ -31,28 +26,15 @@ export function PreviewModal({ file, onClose, onShare, onChanged }: Props) {
   useEffect(() => {
     if (!file) return;
     setPreview(null);
-    setText(null);
-    setBlobUrl(null);
     setLoading(true);
     (async () => {
       const info = await previewApi.info(file.id);
       setPreview(info);
-      const ext = file.fileExt?.toLowerCase() ?? '';
-      const category = categoryOf(ext);
-      if (category === 'IMAGE') {
-        const blob = await download(previewApi.contentUrl(file.id));
-        setBlobUrl(URL.createObjectURL(blob));
-      } else if (category === 'CODE' && TEXT_EXTS.has(ext)) {
-        const blob = await download(previewApi.contentUrl(file.id));
-        setText(await blob.text());
-      }
       fileApi.versions(file.id).then(setVersions).catch(() => setVersions([]));
     })().catch(() => {
       /* 预览失败时仅展示文件信息 */
     }).finally(() => setLoading(false));
   }, [file]);
-
-  const category = useMemo(() => categoryOf(file?.fileExt), [file]);
 
   const handleDownload = () => {
     if (!file) return;
@@ -92,43 +74,11 @@ export function PreviewModal({ file, onClose, onShare, onChanged }: Props) {
     >
       {file && (
         <Spin spinning={loading}>
-          {/* 预览内容 */}
+          {/* 预览内容: 按格式分发(图片/音视频/PDF/Word/Excel/Markdown/文本) */}
           {preview?.message && <Alert type="warning" showIcon message={preview.message} style={{ marginBottom: 16 }} />}
-          {category === 'IMAGE' && blobUrl && (
-            <div style={{ textAlign: 'center', marginBottom: 16 }}>
-              <img src={blobUrl} alt={file.fileName} style={{ maxWidth: '100%', maxHeight: 320, borderRadius: 8 }} />
-            </div>
-          )}
-          {category === 'VIDEO' && (
-            <video src={previewApi.contentUrl(file.id)} controls style={{ width: '100%', borderRadius: 8 }} />
-          )}
-          {category === 'AUDIO' && (
-            <audio src={previewApi.contentUrl(file.id)} controls style={{ width: '100%' }} />
-          )}
-          {text !== null && (
-            <pre
-              style={{
-                background: '#F7F8FA',
-                padding: 12,
-                borderRadius: 8,
-                maxHeight: 320,
-                overflow: 'auto',
-                fontSize: 12.5,
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-all',
-              }}
-            >
-              {text}
-            </pre>
-          )}
-          {category !== 'IMAGE' && category !== 'VIDEO' && category !== 'AUDIO' && text === null && (
-            <Alert
-              type="info"
-              showIcon
-              message={preview?.message ?? '该类型暂不支持在线预览, 可下载后查看'}
-              style={{ marginBottom: 16 }}
-            />
-          )}
+          <div style={{ marginBottom: 16 }}>
+            <FilePreview file={file} />
+          </div>
 
           <Divider style={{ margin: '12px 0' }} />
           <Descriptions

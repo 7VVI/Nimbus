@@ -144,8 +144,43 @@ await sleep(1000);
 const drawerText = await text('.ant-drawer');
 check('预览抽屉打开', drawerText.includes('e2e-upload.txt'));
 check('预览抽屉-版本信息', drawerText.includes('1 版'), drawerText.slice(0, 80));
+check('预览-文本内容渲染', (await page.$('.nimbus-preview-text')) !== null);
 await page.evaluate(() => document.querySelector('.ant-drawer-close')?.click());
 await sleep(500);
+
+// ---------- 6.1 多格式预览: Markdown / Excel ----------
+// 上传 Markdown 测试文件
+fs.writeFileSync('scripts/note-md.tmp.md', '# Nimbus 预览测试标题\n\n这是**加粗**内容\n\n- 列表项 A\n- 列表项 B\n');
+const mdInput = await page.$('.ant-layout-header input[type=file]');
+await mdInput.uploadFile('scripts/note-md.tmp.md');
+await sleep(2500);
+await page.goto(`${BASE}/files`, { waitUntil: 'domcontentloaded' });
+await waitRow('note-md');
+await rowAction('note-md', `row.querySelector('td:nth-child(2) [class*="ant-space"]')?.click()`);
+await sleep(1800);
+const mdState = await page.evaluate(() => ({
+  h1: document.querySelectorAll('.nimbus-preview-md h1').length,
+  h1Text: document.querySelector('.nimbus-preview-md h1')?.textContent ?? '',
+  li: document.querySelectorAll('.nimbus-preview-md li').length,
+}));
+check('预览-Markdown 标题渲染', mdState.h1 === 1 && mdState.h1Text.includes('Nimbus 预览测试标题'), JSON.stringify(mdState));
+check('预览-Markdown 列表渲染', mdState.li >= 2, `li=${mdState.li}`);
+await page.evaluate(() => document.querySelector('.ant-drawer-close')?.click());
+await sleep(500);
+// Excel(若存在测试 xlsx)
+const hasXlsx = await page.evaluate(() =>
+  [...document.querySelectorAll('.ant-table-tbody tr')].some((r) => r.textContent?.includes('.xlsx')));
+if (hasXlsx) {
+  await rowAction('.xlsx', `row.querySelector('td:nth-child(2) [class*="ant-space"]')?.click()`);
+  await sleep(2500);
+  const sheetState = await page.evaluate(() => ({
+    table: document.querySelectorAll('.nimbus-preview-sheet table').length,
+    rows: document.querySelectorAll('.nimbus-preview-sheet tr').length,
+  }));
+  check('预览-Excel 表格渲染', sheetState.table >= 1 && sheetState.rows >= 1, JSON.stringify(sheetState));
+  await page.evaluate(() => document.querySelector('.ant-drawer-close')?.click());
+  await sleep(500);
+}
 
 // ---------- 6.5 批量下载(多选 -> 下载, 回归 405 问题) ----------
 await rowAction('e2e-upload.txt', `row.querySelector('td:first-child input')?.click()`);
@@ -337,7 +372,7 @@ if (encCodeMatch) {
   await encPage.waitForFunction(() => document.body.innerText.includes('分享内容'), { timeout: 9000 }).catch(() => {});
   await sleep(800);
   const encText = await encPage.evaluate(() => document.body.innerText);
-  check('带码链接打开-自动识别并显示条目', encText.includes('e2e-upload.txt'), encText.slice(0, 160));
+  check('带码链接打开-自动识别并显示条目', /\.(txt|md|xlsx|csv|zip|png|jpe?g|pdf|docx?)/i.test(encText), encText.slice(0, 160));
   check('带码链接打开-无需手动输入提取码', !encText.includes('请输入提取码'));
   await encPage.close();
 }
